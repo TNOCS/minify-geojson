@@ -7,10 +7,10 @@
         "program": "${workspaceRoot}/src/minify-geojson.ts",
         "stopOnEntry": false,
         "args": [
-            "-k",
+            "-kiv",
             "-c",
             "5",
-            "../test/vluchtelingen.json"
+            "./test/vluchtelingen.json"
         ],
         "cwd": "${workspaceRoot}",
         "preLaunchTask": null,
