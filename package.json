@@ -1,6 +1,6 @@
 {
   "name": "minify-geojson",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "Minify (compress) a GeoJSON by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties.",
   "main": "./src/minify-geojson.js",
   "repository": {
