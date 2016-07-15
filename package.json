@@ -1,28 +1,38 @@
 {
-  "name": "minify-geojson",
-  "version": "1.0.0",
-  "description": "Minify a GeoJSON by replacing the attribute keys with a shorter representation (typically, a letter of the alphabet).",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/erikvullings/minify-geojson.git"
-  },
-  "keywords": [
-    "GeoJSON",
-    "minify",
-    "compress"
-  ],
-  "author": "Erik Vullings <erik.vullings@gmail.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/erikvullings/minify-geojson/issues"
-  },
-  "homepage": "https://github.com/erikvullings/minify-geojson#readme",
-  "dependencies": {
-    "command-line-args": "^3.0.0",
-    "command-line-usage": "^3.0.3"
-  }
+    "name": "minify-geojson",
+    "version": "1.0.0",
+    "description": "Minify a GeoJSON by replacing the attribute keys with a shorter representation (typically, a letter of the alphabet).",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/TNOCS/minify-geojson.git"
+    },
+    "keywords": [
+        "GeoJSON",
+        "minify",
+        "compress"
+    ],
+    "bin": {
+        "minify-geojson": "./bin/run.js"
+    },
+    "scripts": {
+        "patch-release": "npm version patch && npm publish && git push --follow-tags",
+        "test": "tape 'test/**/*-test.js'"
+    },
+    "author": {
+        "name": "Erik Vullings",
+        "email": "erik.vullings@gmail.com"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/TNOCS/minify-geojson/issues"
+    },
+    "homepage": "https://github.com/TNOCS/minify-geojson#readme",
+    "dependencies": {
+        "command-line-args": "^3.0.0",
+        "command-line-usage": "^3.0.3"
+    },
+    "devDependencies": {
+        "uglify-js": "^2.7.0"
+    }
 }
