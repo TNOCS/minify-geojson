@@ -64,7 +64,7 @@ function minifyGeojson(inputFile: string, options: ICommandOptions, done: Functi
     let blacklist: string[];
     if (options.whitelist) whitelist = options.whitelist.split(',').map(e => e.trim());
     if (options.blacklist) blacklist = options.blacklist.split(',').map(e => e.trim());
-console.log(blacklist);
+
     if (!(minifyKeys || minifyCoordinates || options.whitelist || options.blacklist)) return;
 
     let outputFile = inputFile.replace(/\.[^/.]+$/, ".min.geojson");
@@ -98,8 +98,10 @@ console.log(blacklist);
             let outputFileSizeInBytes = outputStats["size"];
             let percentage = 100 * (inputFileSizeInBytes - outputFileSizeInBytes) / inputFileSizeInBytes;
             logger.info(`${inputFile} minified successfully to ${outputFile}!`);
-            logger.info('Key mapping:');
-            logger.info(JSON.stringify(keys, null, 2));
+            if (minifyKeys) {
+                logger.info('Key mapping:');
+                logger.info(JSON.stringify(keys, null, 2));
+            }
             logger.info(`Original size: ${inputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
             logger.info(`New size:      ${outputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
             logger.info(`Reduction:     ${percentage.toLocaleString('en-US', { minimumFractionDigits: 2 })}%`);
