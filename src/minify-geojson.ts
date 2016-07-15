@@ -99,7 +99,7 @@ const optionDefinitions = [
 
 const sections = [{
         header: 'Minify GeoJSON',
-        content: 'For each input file, minify (compress) a GeoJSON by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties..'
+        content: 'Minify (compress) each input GeoJSON or ESRI shape file by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties..'
     }, {
         header: 'Options',
         optionList: optionDefinitions
