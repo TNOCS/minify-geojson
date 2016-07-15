@@ -15,7 +15,7 @@ const commandLineArgs = require('command-line-args');
 const getUsage = require('command-line-usage')
 
 const optionDefinitions = [
-    { name: 'keys', alias: 'k', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Minify property keys.' },
+    { name: 'keys', alias: 'k', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Minify property keys, e.g. id remains id, telephone becomes t, address a etc.' },
     { name: 'blacklist', alias: 'b', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be removed (others will be kept). Note that keys will not be minified unless the -k flag is used too.' },
     { name: 'whitelist', alias: 'w', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be kept (others will be removed). Note that keys will not be minified unless the -k flag is used too.' },
     { name: 'coordinates', alias: 'c', type: Number, defaultOption: false, typeLabel: '[underline]{Positive number}', description: 'Only keey the first [italic]{n} digits of each coordinate.' },
@@ -44,7 +44,8 @@ var logger = new (winston.Logger)({
 console.log(JSON.stringify(options, null, 2));
 
 // Re-use the keys acrross files.
-var keys: { [key: string]: string } = {};
+var keys: { [key: string]: string } = {}; // original key to new key
+var reversedKeys: { [key: string]: string } = {}; // new key to original key
 let lastKey = 1;
 
 if (!options.src) {
@@ -123,12 +124,36 @@ function minifyPropertyKeys(props: { [key: string]: any }) {
         if (keys.hasOwnProperty(key)) {
             replace = keys[key];
         } else {
-            replace = convertToNumberingScheme(lastKey++);
+            replace = smartKey(key);
+            if (!replace) {
+                do {
+                    replace = convertToNumberingScheme(lastKey++);
+                } while (reversedKeys.hasOwnProperty(replace));
+            }
             keys[key] = replace;
+            reversedKeys[replace] = key; 
         }
         newProps[replace] = props[key];
     }
     return newProps;
+}
+
+/**
+ * Try to find an intelligent match, i.e. id remains, otherwise, try to use the first letter of the word. 
+ * 
+ * @param {string} key
+ * @returns
+ */
+function smartKey(key: string) {
+    const id = 'id';
+    key = key.toLowerCase();
+    if (key === id) {
+        // Case 1: check for an id
+        if (!reversedKeys.hasOwnProperty(id)) return id;
+    } 
+    // Case 2: can we use the first letter (ignoring white space)
+    let replace = key.trim()[0];
+    return reversedKeys.hasOwnProperty(replace) ? undefined : replace; 
 }
 
 /**
@@ -147,15 +172,15 @@ function prune(props: { [key: string]: any }, blacklist: string[], whitelist: st
     return newProps;
 }
 
-function convertToNumberingScheme(number) {
-    var baseChar = ("a").charCodeAt(0),
-        letters = "";
+function convertToNumberingScheme(counter: number) {
+    const baseChar = ("a").charCodeAt(0);
+    let letters = "";
 
     do {
-        number -= 1;
-        letters = String.fromCharCode(baseChar + (number % 26)) + letters;
-        number = (number / 26) >> 0;
-    } while (number > 0);
+        counter -= 1;
+        letters = String.fromCharCode(baseChar + (counter % 26)) + letters;
+        counter = (counter / 26) >> 0;
+    } while (counter > 0);
 
     return letters;
 }
