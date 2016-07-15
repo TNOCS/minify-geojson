@@ -32,4 +32,14 @@ Options
   -c, --coordinates Positive number   Only keep the first n digits of each coordinate.
   -s, --src File names                Source files to process: you do not need to supply the -s flag.
   -v, --verbose Boolean               Output is verbose.
-```
+  
+Examples
+
+  1. Shrink property keys and output to original.min.geojson   $ minify-geojson -k original.geojson
+  2. A verbose version                                         $ minify-geojson -kv original.geojson
+  3. Prune the blacklisted properties                          $ minify-geojson -b "property1, property2" original.geojson
+  4. Keep the whitelisted properties                           $ minify-geojson -w "property1, property2" original.geojson
+  5. Removes superfluous decimals (keep first 5)               $ minify-geojson -c 5 original.geojson
+  6. Add the key mapping to the output                         $ minify-geojson -ki original.geojson
+  7. Full example                                              $ minify-geojson -kiv -w "property1, property2" -c 5 original.geojson                
+  ```
