@@ -41,5 +41,6 @@ Examples
   4. Keep the whitelisted properties                           $ minify-geojson -w "property1, property2" original.geojson
   5. Removes superfluous decimals (keep first 5)               $ minify-geojson -c 5 original.geojson
   6. Add the key mapping to the output                         $ minify-geojson -ki original.geojson
-  7. Full example                                              $ minify-geojson -kiv -w "property1, property2" -c 5 original.geojson                
+  7. Convert to output to topojson (-i and -c are not used)    $ minify-geojson -kt original.geojson                                 
+  8. Full example                                              $ minify-geojson -ktiv -w "property1, property2" -c 5 original.geojson
   ```
