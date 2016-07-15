@@ -43,7 +43,6 @@ var logger = new (winston.Logger)({
         new (winston.transports.Console)({ level: options.verbose ? 'info' : 'warning' })
     ]
 });
-console.log(JSON.stringify(options, null, 2));
 
 // Re-use the keys acrross files.
 var keys: { [key: string]: string } = {}; // original key to new key
