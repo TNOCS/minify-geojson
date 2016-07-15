@@ -2,14 +2,86 @@ import fs = require('fs');
 import path = require('path');
 import winston = require('winston');
 
+var topojson: ITopoJSON = require("topojson");
+
 export interface ICommandOptions {
     keys: boolean,
     includeKeyMap: boolean,
+    topo: boolean,
     verbose: boolean,
     coordinates: number,
     src: string[],
     whitelist: string,
     blacklist: string
+}
+
+export interface ITopologyOptions {
+    /**
+     * Informational messages will be output to stderr
+     * 
+     * @type {boolean}
+     */
+    verbose?: boolean,
+    /**
+     * Either "cartesian", "spherical" or null to infer the coordinate system automatically
+     * 
+     * @type {("cartesian" | "spherical" | "")}
+     */
+    "coordinate-system"?: "cartesian" | "spherical" | "",
+    /**
+     * If truthy and using spherical coordinates, polar antimeridian cuts will be stitched 
+     * 
+     * @type {boolean}
+     */
+    "stitch-poles"?: boolean,
+    /**
+     * Quantization precision; the maximum number of differentiable points per dimension. 
+     * 
+     * @type {number}
+     */
+    quantization?: number,
+    /**
+     * A function for computing the id of each input feature. 
+     * 
+     * @type {Function}
+     */
+    id?: Function,
+    /**
+     * A function for remapping properties.
+     * 
+     * @type {Function}
+     */
+    "property-transform"?: Function
+}
+
+export interface ITopology {
+}
+
+export interface ITopoJSON {
+    /**
+     * Convert to TopoJSON 
+     * 
+     * @param {{ collection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject> }} collection
+     */
+    topology(collection: { collection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject> }, options?: ITopologyOptions): ITopology;
+    /**
+     * Simplifies the topology.
+     * 
+     * @param {ITopology} topo
+     * @param {{ verbose: boolean }} [options]
+     * @returns {ITopology}
+     */
+    simplify(topo: ITopology, options?: { verbose?: boolean, "coordinate-system": string }): ITopology;
+    /**
+     * Removes any unused arcs from the specified topology.
+     * 
+     * @param {ITopology} topo
+     * @param {{ verbose: boolean }} [options]
+     * @returns {ITopology}
+     */
+    prune(topo: ITopology, options?: { verbose: boolean }): ITopology;
+    filter(topo: ITopology, options?: { verbose: boolean }): ITopology;
+    clockwise(topo: ITopology, options?: { verbose: boolean }): ITopology;
 }
 
 const commandLineArgs = require('command-line-args');
@@ -18,6 +90,7 @@ const getUsage = require('command-line-usage')
 const optionDefinitions = [
     { name: 'keys', alias: 'k', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Minify property keys, e.g. id remains id, telephone becomes t, address a etc.' },
     { name: 'includeKeyMap', alias: 'i', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Add the key map to the GeoJSON file. Requires the -k flag too.' },
+    { name: 'topo', alias: 't', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Output format is TopoJSON instead of GeoJSON' },
     { name: 'blacklist', alias: 'b', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be removed (others will be kept). Note that keys will not be minified unless the -k flag is used too.' },
     { name: 'whitelist', alias: 'w', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be kept (others will be removed). Note that keys will not be minified unless the -k flag is used too.' },
     { name: 'coordinates', alias: 'c', type: Number, defaultOption: false, typeLabel: '[underline]{Positive number}', description: 'Only keep the first [italic]{n} digits of each coordinate.' },
@@ -53,8 +126,11 @@ const sections = [{
             desc: '6. Add the key mapping to the output',
             example: '$ minify-geojson -ki original.geojson'
         }, {
-            desc: '7. Full example',
-            example: '$ minify-geojson -kiv -w "property1, property2" -c 5 original.geojson'
+            desc: '7. Convert to output to topojson (-i and -c are not used)',
+            example: '$ minify-geojson -kt original.geojson'
+        }, {
+            desc: '8. Full example',
+            example: '$ minify-geojson -ktiv -w "property1, property2" -c 5 original.geojson'
         }]
     }
 ];
@@ -91,12 +167,16 @@ function minifyGeojson(inputFile: string, options: ICommandOptions, done: Functi
 
     if (!(minifyKeys || minifyCoordinates || options.whitelist || options.blacklist)) return;
 
-    let outputFile = inputFile.replace(/\.[^/.]+$/, ".min.geojson");
+    let ext = options.topo ? ".min.topojson" : ".min.geojson";
+    let outputFile = inputFile.replace(/\.[^/.]+$/, ext);
     logger.info(`Minifying ${inputFile} to ${outputFile}...`);
     let geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
     fs.readFile(inputFile, 'utf8', (err, data) => {
         if (err) throw err;
+
         geojson = JSON.parse(data);
+        geojson.type = "FeatureCollection"; // this is sometimes missing
+        // Process the property keys
         if (minifyKeys || blacklist || whitelist) {
             geojson.features.forEach(f => {
                 if (f.properties) {
@@ -105,17 +185,29 @@ function minifyGeojson(inputFile: string, options: ICommandOptions, done: Functi
                 }
             });
         }
+        // Preserver map
         if (minifyKeys && options.includeKeyMap) {
             geojson['map'] = reversedKeys; 
-        } 
+        }
+        let json = <any> geojson;
+        // Convert to topojson
+        if (options.topo) {
+            // Overwrite the current GeoJSON object with a TopoJSON representation
+            logger.info('CONVERTING TO TOPOJSON')
+            let topology = topojson.topology( {collection: geojson }, { verbose: options.verbose, 'property-transform': (feature) => { return feature.properties; }});
+            topology = topojson.prune(topology, { verbose: options.verbose });
+            topology = topojson.simplify(topology, { verbose: options.verbose, 'coordinate-system': 'spherical' });
+            json = topology;
+        }
+
         let minified: string;
-        if (typeof minifyCoordinates === 'number' && minifyCoordinates > 0) {
-            minified = JSON.stringify(geojson, (key, val) => {
+        if (!options.topo && typeof minifyCoordinates === 'number' && minifyCoordinates > 0) {
+            minified = JSON.stringify(json, (key, val) => {
                 if (isNaN(+key)) return val;
                 return val.toFixed ? Number(val.toFixed(minifyCoordinates)) : val;
             });
         } else {
-            minified = JSON.stringify(geojson);
+            minified = JSON.stringify(json);
         }
         fs.writeFile(outputFile, minified, (err) => {
             if (err) throw err;
