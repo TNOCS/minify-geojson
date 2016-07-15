@@ -2,8 +2,6 @@ import fs = require('fs');
 import path = require('path');
 import winston = require('winston');
 
-var topojson: ITopoJSON = require("topojson");
-
 export interface ICommandOptions {
     keys: boolean,
     includeKeyMap: boolean,
@@ -153,11 +151,55 @@ if (!options.src) {
 } else {
     options.src.forEach(s => {
         let file = path.isAbsolute(s) ? s : path.join(process.cwd(), s);
-        if (fs.existsSync(file)) minifyGeojson(file, options, () => { });
+        if (fs.existsSync(file)) minifyFile(file, options, () => { });
     });
 }
 
-function minifyGeojson(inputFile: string, options: ICommandOptions, done: Function) {
+/**
+ * Minify the input (shape or GeoJSON) file.
+ * 
+ * @param {string} inputFile
+ * @param {ICommandOptions} options
+ * @param {Function} done
+ * @returns
+ */
+function minifyFile(inputFile: string, options: ICommandOptions, done: Function) {
+    if (!(options.keys || options.coordinates || options.whitelist || options.blacklist)) return;
+
+    let ext = options.topo ? ".min.topojson" : ".min.geojson";
+    let outputFile = inputFile.replace(/\.[^/.]+$/, ext);
+
+    let geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
+
+    if (inputFile.match(/json$/i)) {
+        fs.readFile(inputFile, 'utf8', (err, data) => {
+            if (err) throw err;
+
+            geojson = JSON.parse(data);
+            geojson.type = "FeatureCollection"; // this is sometimes missing
+
+            processGeoJSON(geojson, inputFile, outputFile, options, done);
+        });
+    } else if (inputFile.match(/shp$/i)) {
+        let shapefile = require('shapefile');
+        shapefile.read(inputFile, (err, geojson)=> {
+            if (err) throw err;
+
+            processGeoJSON(geojson, inputFile, outputFile, options, done);
+        }); 
+    }
+}
+
+/**
+ * Minify the GeoJSON file.
+ * 
+ * @param {GeoJSON.FeatureCollection<GeoJSON.GeometryObject>} geojson
+ * @param {string} inputFile
+ * @param {string} outputFile
+ * @param {ICommandOptions} options
+ * @param {Function} done
+ */
+function processGeoJSON(geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>, inputFile: string, outputFile: string, options: ICommandOptions, done: Function) {
     let minifyKeys = options.keys;
     let minifyCoordinates = options.coordinates;
     let whitelist: string[];
@@ -165,17 +207,6 @@ function minifyGeojson(inputFile: string, options: ICommandOptions, done: Functi
     if (options.whitelist) whitelist = options.whitelist.split(',').map(e => e.trim());
     if (options.blacklist) blacklist = options.blacklist.split(',').map(e => e.trim());
 
-    if (!(minifyKeys || minifyCoordinates || options.whitelist || options.blacklist)) return;
-
-    let ext = options.topo ? ".min.topojson" : ".min.geojson";
-    let outputFile = inputFile.replace(/\.[^/.]+$/, ext);
-    logger.info(`Minifying ${inputFile} to ${outputFile}...`);
-    let geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
-    fs.readFile(inputFile, 'utf8', (err, data) => {
-        if (err) throw err;
-
-        geojson = JSON.parse(data);
-        geojson.type = "FeatureCollection"; // this is sometimes missing
         // Process the property keys
         if (minifyKeys || blacklist || whitelist) {
             geojson.features.forEach(f => {
@@ -194,6 +225,7 @@ function minifyGeojson(inputFile: string, options: ICommandOptions, done: Functi
         if (options.topo) {
             // Overwrite the current GeoJSON object with a TopoJSON representation
             logger.info('CONVERTING TO TOPOJSON')
+            let topojson: ITopoJSON = require("topojson");
             let topology = topojson.topology( {collection: geojson }, { verbose: options.verbose, 'property-transform': (feature) => { return feature.properties; }});
             topology = topojson.prune(topology, { verbose: options.verbose });
             topology = topojson.simplify(topology, { verbose: options.verbose, 'coordinate-system': 'spherical' });
@@ -211,22 +243,24 @@ function minifyGeojson(inputFile: string, options: ICommandOptions, done: Functi
         }
         fs.writeFile(outputFile, minified, (err) => {
             if (err) throw err;
-            let inputStats = fs.statSync(inputFile);
-            let inputFileSizeInBytes = inputStats["size"];
-            let outputStats = fs.statSync(outputFile);
-            let outputFileSizeInBytes = outputStats["size"];
-            let percentage = 100 * (inputFileSizeInBytes - outputFileSizeInBytes) / inputFileSizeInBytes;
-            logger.info(`${inputFile} minified successfully to ${outputFile}!`);
-            if (minifyKeys) {
-                logger.info('Key mapping:');
-                logger.info(JSON.stringify(keys, null, 2));
+
+            if (options.verbose) {
+                let inputStats = fs.statSync(inputFile);
+                let inputFileSizeInBytes = inputStats["size"];
+                let outputStats = fs.statSync(outputFile);
+                let outputFileSizeInBytes = outputStats["size"];
+                let percentage = 100 * (inputFileSizeInBytes - outputFileSizeInBytes) / inputFileSizeInBytes;
+                logger.info(`${inputFile} minified successfully to ${outputFile}!`);
+                if (minifyKeys) {
+                    logger.info('Key mapping:');
+                    logger.info(JSON.stringify(keys, null, 2));
+                }
+                logger.info(`Original size: ${inputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
+                logger.info(`New size:      ${outputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
+                logger.info(`Reduction:     ${percentage.toLocaleString('en-US', { minimumFractionDigits: 2 })}%`);
             }
-            logger.info(`Original size: ${inputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
-            logger.info(`New size:      ${outputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
-            logger.info(`Reduction:     ${percentage.toLocaleString('en-US', { minimumFractionDigits: 2 })}%`);
             done();
         });
-    });
 }
 
 /**
