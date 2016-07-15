@@ -4,6 +4,7 @@ import winston = require('winston');
 
 export interface ICommandOptions {
     keys: boolean,
+    includeKeyMap: boolean,
     verbose: boolean,
     coordinates: number,
     src: string[],
@@ -16,10 +17,11 @@ const getUsage = require('command-line-usage')
 
 const optionDefinitions = [
     { name: 'keys', alias: 'k', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Minify property keys, e.g. id remains id, telephone becomes t, address a etc.' },
+    { name: 'includeKeyMap', alias: 'i', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Add the key map to the GeoJSON file. Requires the -k flag too.' },
     { name: 'blacklist', alias: 'b', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be removed (others will be kept). Note that keys will not be minified unless the -k flag is used too.' },
     { name: 'whitelist', alias: 'w', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be kept (others will be removed). Note that keys will not be minified unless the -k flag is used too.' },
-    { name: 'coordinates', alias: 'c', type: Number, defaultOption: false, typeLabel: '[underline]{Positive number}', description: 'Only keey the first [italic]{n} digits of each coordinate.' },
-    { name: 'src', alias: 's', type: String, multiple: true, defaultOption: true, typeLabel: '[underline]{File names}', description: 'Source files to process.' },
+    { name: 'coordinates', alias: 'c', type: Number, defaultOption: false, typeLabel: '[underline]{Positive number}', description: 'Only keep the first [italic]{n} digits of each coordinate.' },
+    { name: 'src', alias: 's', type: String, multiple: true, defaultOption: true, typeLabel: '[underline]{File names}', description: 'Source files to process: you do not need to supply the -s flag.' },
     { name: 'verbose', alias: 'v', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Output is verbose.' }
 ];
 
@@ -27,7 +29,7 @@ const optionDefinitions = [
 const sections = [
     {
         header: 'Minify GeoJSON',
-        content: 'For each input file, minify the property keys and the number of decimals for each coordinate.'
+        content: 'For each input file, minify (compress) a GeoJSON by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties..'
     },
     {
         header: 'Options',
@@ -82,6 +84,9 @@ function minifyGeojson(inputFile: string, options: ICommandOptions, done: Functi
                 }
             });
         }
+        if (minifyKeys && options.includeKeyMap) {
+            geojson['map'] = reversedKeys; 
+        } 
         let minified: string;
         if (typeof minifyCoordinates === 'number' && minifyCoordinates > 0) {
             minified = JSON.stringify(geojson, (key, val) => {
