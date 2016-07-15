@@ -34,7 +34,7 @@ if (!options.src) {
     console.log(usage);
 } else {
     options.src.forEach(s => {
-        let file = path.isAbsolute(s) ? s : path.join(__dirname, s);
+        let file = path.isAbsolute(s) ? s : path.join(process.cwd(), s);
         if (fs.existsSync(file)) minifyGeojson(file, options.keys, options.coordinates, () => {});
     });
 }
@@ -42,6 +42,7 @@ if (!options.src) {
 function minifyGeojson(inputFile: string, minifyKeys: boolean, minifyCoordinates: number, done: Function) {
     if (!minifyKeys && !minifyCoordinates) return;
     let outputFile = inputFile.replace(/\.[^/.]+$/, ".min.geojson");
+    console.log(`Minifying ${inputFile} to ${outputFile}...`);
     let geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
     fs.readFile(inputFile, 'utf8', (err, data) => {
         if (err) throw err;
