@@ -1,13 +1,26 @@
 import fs = require('fs');
 import path = require('path');
+import winston = require('winston');
+
+export interface ICommandOptions {
+    keys: boolean,
+    verbose: boolean,
+    coordinates: number,
+    src: string[],
+    whitelist: string,
+    blacklist: string
+}
 
 const commandLineArgs = require('command-line-args');
 const getUsage = require('command-line-usage')
 
 const optionDefinitions = [
     { name: 'keys', alias: 'k', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Minify property keys.' },
+    { name: 'blacklist', alias: 'b', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be removed (others will be kept). Note that keys will not be minified unless the -k flag is used too.' },
+    { name: 'whitelist', alias: 'w', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be kept (others will be removed). Note that keys will not be minified unless the -k flag is used too.' },
     { name: 'coordinates', alias: 'c', type: Number, defaultOption: false, typeLabel: '[underline]{Positive number}', description: 'Only keey the first [italic]{n} digits of each coordinate.' },
-    { name: 'src', alias: 's', type: String, multiple: true, defaultOption: true, typeLabel: '[underline]{File names}', description: 'Source files to process.' }
+    { name: 'src', alias: 's', type: String, multiple: true, defaultOption: true, typeLabel: '[underline]{File names}', description: 'Source files to process.' },
+    { name: 'verbose', alias: 'v', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Output is verbose.' }
 ];
 
 
@@ -22,8 +35,13 @@ const sections = [
     }
 ];
 
-const options = commandLineArgs(optionDefinitions);
-// console.log(options);
+const options: ICommandOptions = commandLineArgs(optionDefinitions);
+var logger = new (winston.Logger)({
+    transports: [
+        new (winston.transports.Console)({ level: options.verbose ? 'info' : 'warning' })
+    ]
+});
+console.log(JSON.stringify(options, null, 2));
 
 // Re-use the keys acrross files.
 var keys: { [key: string]: string } = {};
@@ -35,33 +53,31 @@ if (!options.src) {
 } else {
     options.src.forEach(s => {
         let file = path.isAbsolute(s) ? s : path.join(process.cwd(), s);
-        if (fs.existsSync(file)) minifyGeojson(file, options.keys, options.coordinates, () => {});
+        if (fs.existsSync(file)) minifyGeojson(file, options, () => { });
     });
 }
 
-function minifyGeojson(inputFile: string, minifyKeys: boolean, minifyCoordinates: number, done: Function) {
-    if (!minifyKeys && !minifyCoordinates) return;
+function minifyGeojson(inputFile: string, options: ICommandOptions, done: Function) {
+    let minifyKeys = options.keys;
+    let minifyCoordinates = options.coordinates;
+    let whitelist: string[];
+    let blacklist: string[];
+    if (options.whitelist) whitelist = options.whitelist.split(',').map(e => e.trim());
+    if (options.blacklist) blacklist = options.blacklist.split(',').map(e => e.trim());
+console.log(blacklist);
+    if (!(minifyKeys || minifyCoordinates || options.whitelist || options.blacklist)) return;
+
     let outputFile = inputFile.replace(/\.[^/.]+$/, ".min.geojson");
-    console.log(`Minifying ${inputFile} to ${outputFile}...`);
+    logger.info(`Minifying ${inputFile} to ${outputFile}...`);
     let geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
     fs.readFile(inputFile, 'utf8', (err, data) => {
         if (err) throw err;
         geojson = JSON.parse(data);
-        if (minifyKeys) {
+        if (minifyKeys || blacklist || whitelist) {
             geojson.features.forEach(f => {
                 if (f.properties) {
-                    let props: {[key: string]: any} = {};
-                    for (var key in f.properties) {
-                        let replace: string;
-                        if (keys.hasOwnProperty(key)) {
-                            replace = keys[key];
-                        } else {
-                            replace = convertToNumberingScheme(lastKey++);
-                            keys[key] = replace;
-                        }
-                        props[replace] = f.properties[key];
-                    }
-                    f.properties = props;
+                    if (blacklist || whitelist) f.properties = prune(f.properties, blacklist, whitelist);
+                    if (minifyKeys) f.properties = minifyPropertyKeys(f.properties);
                 }
             });
         }
@@ -81,15 +97,52 @@ function minifyGeojson(inputFile: string, minifyKeys: boolean, minifyCoordinates
             let outputStats = fs.statSync(outputFile);
             let outputFileSizeInBytes = outputStats["size"];
             let percentage = 100 * (inputFileSizeInBytes - outputFileSizeInBytes) / inputFileSizeInBytes;
-            console.log(`${inputFile} minified successfully!`);
-            console.log('Key mapping:');
-            console.log(JSON.stringify(keys, null, 2));
-            console.log(`Original size: ${inputFileSizeInBytes.toLocaleString('en-US', {minimumFractionDigits: 0})}`);
-            console.log(`New size:      ${outputFileSizeInBytes.toLocaleString('en-US', {minimumFractionDigits: 0})}`);
-            console.log(`Reduction:     ${percentage.toLocaleString('en-US', {minimumFractionDigits: 2})}%`);
+            logger.info(`${inputFile} minified successfully to ${outputFile}!`);
+            logger.info('Key mapping:');
+            logger.info(JSON.stringify(keys, null, 2));
+            logger.info(`Original size: ${inputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
+            logger.info(`New size:      ${outputFileSizeInBytes.toLocaleString('en-US', { minimumFractionDigits: 0 })}`);
+            logger.info(`Reduction:     ${percentage.toLocaleString('en-US', { minimumFractionDigits: 2 })}%`);
             done();
         });
     });
+}
+
+/**
+ * Minifies the property keys. 
+ * 
+ * @param {{ [key: string]: any }} props
+ * @returns
+ */
+function minifyPropertyKeys(props: { [key: string]: any }) {
+    let newProps: { [key: string]: any } = {};
+    for (var key in props) {
+        let replace: string;
+        if (keys.hasOwnProperty(key)) {
+            replace = keys[key];
+        } else {
+            replace = convertToNumberingScheme(lastKey++);
+            keys[key] = replace;
+        }
+        newProps[replace] = props[key];
+    }
+    return newProps;
+}
+
+/**
+ * Remove all properties that are on the blacklist and not on the whitelist. 
+ * 
+ * @param {{ [key: string]: any }} props
+ */
+function prune(props: { [key: string]: any }, blacklist: string[], whitelist: string[]) {
+    if (!blacklist && !whitelist) return props;
+    let newProps: { [key: string]: any } = {};
+    for (var key in props) {
+        if (blacklist && blacklist.indexOf(key) >= 0) continue;
+        if (whitelist && whitelist.indexOf(key) < 0) continue;
+        newProps[key] = props[key];
+    }
+    return newProps;
 }
 
 function convertToNumberingScheme(number) {
