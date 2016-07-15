@@ -1,37 +1,37 @@
 {
-  "name": "minify-geojson",
-  "version": "1.0.1",
-  "description": "Minify (compress) a GeoJSON by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties.",
-  "main": "./src/minify-geojson.js",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/TNOCS/minify-geojson.git"
-  },
-  "keywords": [
-    "GeoJSON",
-    "minify",
-    "compress"
-  ],
-  "bin": {
-    "minify-geojson": "./bin/run.js"
-  },
-  "scripts": {
-    "patch-release": "npm version patch && npm publish && git push --follow-tags",
-    "test": "tape 'test/**/*-test.js'"
-  },
-  "author": {
-    "name": "Erik Vullings",
-    "email": "erik.vullings@gmail.com"
-  },
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/TNOCS/minify-geojson/issues"
-  },
-  "homepage": "https://github.com/TNOCS/minify-geojson#readme",
-  "dependencies": {
-    "command-line-args": "^3.0.0",
-    "command-line-usage": "^3.0.3",
-    "winston": "^2.2.0"
-  },
-  "devDependencies": {}
+    "name": "minify-geojson",
+    "version": "1.0.1",
+    "description": "Minify (compress) a GeoJSON by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties.",
+    "main": "./src/minify-geojson.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/TNOCS/minify-geojson.git"
+    },
+    "keywords": [
+        "GeoJSON",
+        "minify",
+        "compress"
+    ],
+    "bin": {
+        "minify-geojson": "./bin/run.js"
+    },
+    "scripts": {
+        "patch-release": "npm version patch && npm publish && git push --follow-tags",
+        "test": "tape 'test/**/*-test.js'"
+    },
+    "author": {
+        "name": "Erik Vullings",
+        "email": "erik.vullings@gmail.com"
+    },
+    "license": "MIT",
+    "bugs": {
+        "url": "https://github.com/TNOCS/minify-geojson/issues"
+    },
+    "homepage": "https://github.com/TNOCS/minify-geojson#readme",
+    "dependencies": {
+        "command-line-args": "^3.0.0",
+        "command-line-usage": "^3.0.3",
+        "winston": "^2.2.0"
+    },
+    "devDependencies": {}
 }

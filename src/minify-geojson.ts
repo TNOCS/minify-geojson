@@ -26,14 +26,36 @@ const optionDefinitions = [
 ];
 
 
-const sections = [
-    {
+const sections = [{
         header: 'Minify GeoJSON',
         content: 'For each input file, minify (compress) a GeoJSON by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties..'
-    },
-    {
+    }, {
         header: 'Options',
         optionList: optionDefinitions
+    }, {
+        header: 'Examples',
+        content: [{
+            desc: '1. Shrink property keys and output to original.min.geojson',
+            example: '$ minify-geojson -k original.geojson'
+        }, {
+            desc: '2. A verbose version',
+            example: '$ minify-geojson -kv original.geojson'
+        }, {
+            desc: '3. Prune the blacklisted properties',
+            example: '$ minify-geojson -b "property1, property2" original.geojson'
+        }, {
+            desc: '4. Keep the whitelisted properties',
+            example: '$ minify-geojson -w "property1, property2" original.geojson'
+        }, {
+            desc: '5. Removes superfluous decimals (keep first 5)',
+            example: '$ minify-geojson -c 5 original.geojson'
+        }, {
+            desc: '6. Add the key mapping to the output',
+            example: '$ minify-geojson -ki original.geojson'
+        }, {
+            desc: '7. Full example',
+            example: '$ minify-geojson -kiv -w "property1, property2" -c 5 original.geojson'
+        }]
     }
 ];
 
