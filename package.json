@@ -16,6 +16,7 @@
     "minify-geojson": "./bin/run.js"
   },
   "scripts": {
+    "watch": "typings install && tsc -w",
     "patch-release": "npm version patch && npm publish && git push --follow-tags",
     "test": "tape 'test/**/*-test.js'"
   },
@@ -37,5 +38,8 @@
     "topojson": "^1.6.26",
     "winston": "^2.2.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "typescript": "^1.8.10",
+    "typings": "^1.3.1"
+  }
 }
