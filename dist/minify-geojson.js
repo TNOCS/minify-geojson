@@ -29,11 +29,13 @@ var MinifyGeoJSON = (function () {
                         throw new Error('Could not read input file!');
                     var ext = options.topo ? ".min.topojson" : ".min.geojson";
                     var outputFile = file.replace(/\.[^/.]+$/, ext);
-                    if (options.from) {
-                        _this.logger.info('REPROJECTING to WGS84');
-                        var crsName = options.from.toUpperCase();
+                    if (options.filter)
+                        geojson = _this.filter(geojson, options.filter);
+                    if (options.reproject) {
+                        var crsName = options.reproject.toUpperCase();
                         if (!crsName.match(/^EPSG:/))
                             crsName = "EPSG:" + crsName;
+                        _this.logger.info("REPROJECTING from " + crsName + " to WGS84");
                         _this.getCoordinateReferenceSystem(crsName, function (crss) {
                             var reproject = require('reproject');
                             geojson = reproject.toWgs84(geojson, crss, crss);
@@ -47,6 +49,43 @@ var MinifyGeoJSON = (function () {
             }
         });
     }
+    MinifyGeoJSON.prototype.filter = function (geojson, filterQuery) {
+        var re = /^([a-zA-Z_ 0-9]*)([<>=]{1,2})([a-zA-Z_ 0-9]*)$/;
+        var filteredFeatures = [];
+        var filter = function (prop) { return function (op) { return function (val) { return function (props) {
+            if (!props.hasOwnProperty(prop))
+                return false;
+            switch (op.trim()) {
+                case '=': return props[prop] === val;
+                case '<': return props[prop] < val;
+                case '>': return props[prop] > val;
+                case '<=': return props[prop] <= val;
+                case '>=': return props[prop] >= val;
+                default: throw new Error("Operator " + op + " is not supported!");
+            }
+        }; }; }; };
+        var queries = filterQuery.split(',').map(function (q) { return q.trim(); });
+        var filters = [];
+        queries.forEach(function (q) {
+            var m = re.exec(q);
+            if (!m || m.length !== 4) {
+                throw new Error('Filters should be in the form PROPERTY OPERATOR VALUE, where property is a string, OPERATOR is <, =, >, <= or >=, and VALUE is a string or number.');
+            }
+            filters.push(filter(m[1].trim())(m[2].trim())(m[3].trim()));
+        });
+        filteredFeatures = geojson.features.filter(function (feature) {
+            var pass = true;
+            filters.some(function (f) {
+                if (f(feature.properties))
+                    return false;
+                pass = false;
+                return true;
+            });
+            return pass;
+        });
+        geojson.features = filteredFeatures;
+        return geojson;
+    };
     MinifyGeoJSON.prototype.loadFile = function (inputFile, options, cb) {
         if (!(options.keys || options.coordinates || options.whitelist || options.blacklist))
             return cb();

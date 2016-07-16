@@ -103,10 +103,12 @@ export class MinifyGeoJSON {
                     let ext = options.topo ? ".min.topojson" : ".min.geojson";
                     let outputFile = file.replace(/\.[^/.]+$/, ext);
 
-                    if (options.from) {
-                        this.logger.info('REPROJECTING to WGS84');
-                        let crsName = options.from.toUpperCase();
+                    if (options.filter) geojson = this.filter(geojson, options.filter);
+
+                    if (options.reproject) {
+                        let crsName = options.reproject.toUpperCase();
                         if (!crsName.match(/^EPSG:/)) crsName = `EPSG:${crsName}`;
+                        this.logger.info(`REPROJECTING from ${crsName} to WGS84`);
                         this.getCoordinateReferenceSystem(crsName, (crss) => {
                             let reproject = require('reproject');
                             geojson = reproject.toWgs84(geojson, crss, crss);
@@ -118,6 +120,48 @@ export class MinifyGeoJSON {
                 });
             }
         });
+    }
+
+    filter(geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>, filterQuery: string) {
+        const re = /^([a-zA-Z_ 0-9]*)([<>=]{1,2})([a-zA-Z_ 0-9]*)$/;
+
+        let filteredFeatures: GeoJSON.Feature<GeoJSON.GeometryObject>[] = [];
+
+        // See TypeScript currying: https://basarat.gitbooks.io/typescript/content/docs/tips/currying.html
+        let filter = (prop: string) => (op: string) => (val: string) => (props: Object) => {
+            if (!props.hasOwnProperty(prop)) return false;
+            switch (op.trim()) {
+                case '=': return props[prop] === val;
+                case '<': return props[prop] < val;
+                case '>': return props[prop] > val;
+                case '<=': return props[prop] <= val;
+                case '>=': return props[prop] >= val;
+                default: throw new Error(`Operator ${op} is not supported!`);
+            }
+        }; 
+
+        let queries = filterQuery.split(',').map(q => q.trim());
+        let filters = [];
+        queries.forEach(q => {
+            let m = re.exec(q);
+            if (!m || m.length !== 4) {
+                throw new Error('Filters should be in the form PROPERTY OPERATOR VALUE, where property is a string, OPERATOR is <, =, >, <= or >=, and VALUE is a string or number.');
+            }
+            filters.push(filter(m[1].trim())(m[2].trim())(m[3].trim()));
+        });
+
+        filteredFeatures = geojson.features.filter(feature => {
+            let pass = true; 
+            filters.some(f => {
+                if (f(feature.properties)) return false;
+                pass = false;
+                return true;
+            });
+            return pass;
+        });
+
+        geojson.features = filteredFeatures;
+        return geojson;
     }
 
     /**

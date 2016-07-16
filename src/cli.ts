@@ -1,7 +1,8 @@
 export interface ICommandOptions {
     keys: boolean,
     includeKeyMap: boolean,
-    from: string,
+    reproject: string,
+    filter: string,
     topo: boolean,
     verbose: boolean,
     coordinates: number,
