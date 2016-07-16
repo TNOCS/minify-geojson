@@ -5,11 +5,23 @@ A small tool to minify (compress) a GeoJSON file by:
 - Minify the length of the keys by mapping each key name to a single of double letter combination: option `-k` converts long property keys such as `my_long_property_name` to `a` or `ab`. **Warning:** If you already have property keys like `a` or `b`, it may map them to the wrong name.
 - Blacklist keys, i.e. remove these keys from the output
 - Whitelist keys, i.e. only keep these keys in the output
+- Filter features, i.e. only keep those features whose properties satisfy certain conditions. 
 
 # Installation
+
+To run it standalone:
 ```shell
 npm i -g minify-geojson
 ```
+After which the `minify-geojson` command should be available.
+
+Alternatively, you can fork/download/clone the repository, and execute:
+```shell
+npm install
+npm link
+npm run watch
+```
+Any changes in the Typescript code will be compiled, and since you've linked the project, you can use the `minify-geojson` command from the commandline too.
 
 # Manual
 
