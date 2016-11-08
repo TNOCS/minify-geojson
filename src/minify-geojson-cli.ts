@@ -1,5 +1,5 @@
-import {ICommandOptions} from './cli';
-import {MinifyGeoJSON} from './minify-geojson';
+import { ICommandOptions } from './cli';
+import { MinifyGeoJSON } from './minify-geojson';
 const commandLineArgs = require('command-line-args');
 
 export class CommandLineInterface {
@@ -20,44 +20,53 @@ export class CommandLineInterface {
         header: 'Minify GeoJSON',
         content: 'Minify (compress) each input GeoJSON or ESRI shape file by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, whitelist and blacklist or filter certain properties. Output can be GeoJSON or TopoJSON. If you wish to reproject to WGS84, you can supply the EPSG code (which will be retreived via http://www.spatialreference.org/ref/epsg/YOURCODE/proj4/).'
     }, {
-            header: 'Options',
-            optionList: CommandLineInterface.optionDefinitions
+        header: 'Options',
+        optionList: CommandLineInterface.optionDefinitions
+    }, {
+        header: 'Examples',
+        content: [{
+            desc: '01. Shrink property keys and output to original.min.geojson',
+            example: '$ minify-geojson -k original.geojson'
         }, {
-            header: 'Examples',
-            content: [{
-                    desc: '01. Shrink property keys and output to original.min.geojson',
-                    example: '$ minify-geojson -k original.geojson'
-                }, {
-                    desc: '02. A verbose version',
-                    example: '$ minify-geojson -kv original.geojson'
-                }, {
-                    desc: '03. Prune the blacklisted properties',
-                    example: '$ minify-geojson -b "property1, property2" original.geojson'
-                }, {
-                    desc: '04. Keep the whitelisted properties',
-                    example: '$ minify-geojson -w "property1, property2" original.geojson'
-                }, {
-                    desc: '05. Removes superfluous decimals (keep first 5)',
-                    example: '$ minify-geojson -c 5 original.geojson'
-                }, {
-                    desc: '06. Add the key mapping to the output',
-                    example: '$ minify-geojson -ki original.geojson'
-                }, {
-                    desc: '07. Convert output to topojson (-i and -c are not used)',
-                    example: '$ minify-geojson -kt original.geojson'
-                }, {
-                    desc: '08. Reproject shape file in RD (EPSG:28992) to TopoJSON',
-                    example: '$ minify-geojson -ktv -r 28992 original.shp'
-                }, {
-                    desc: '09. Filter based on properties',
-                    example: '$ minify-geojson -ktv -r 28992 -f "WATER = NO, CITY=Amsterdam" -b "WATER, CITY" original.shp'
-                }, {
-                    desc: '10. Full example',
-                    example: '$ minify-geojson -ktiv -w "property1, property2" -c 5 original.geojson'
-                }]
-        }
+            desc: '02. A verbose version',
+            example: '$ minify-geojson -kv original.geojson'
+        }, {
+            desc: '03. Prune the blacklisted properties',
+            example: '$ minify-geojson -b "property1, property2" original.geojson'
+        }, {
+            desc: '04. Keep the whitelisted properties',
+            example: '$ minify-geojson -w "property1, property2" original.geojson'
+        }, {
+            desc: '05. Removes superfluous decimals (keep first 5)',
+            example: '$ minify-geojson -c 5 original.geojson'
+        }, {
+            desc: '06. Add the key mapping to the output',
+            example: '$ minify-geojson -ki original.geojson'
+        }, {
+            desc: '07. Convert output to topojson (-i and -c are not used)',
+            example: '$ minify-geojson -kt original.geojson'
+        }, {
+            desc: '08. Reproject shape file in RD (EPSG:28992) to TopoJSON',
+            example: '$ minify-geojson -ktv -r 28992 original.shp'
+        }, {
+            desc: '09. Filter based on properties',
+            example: '$ minify-geojson -ktv -r 28992 -f "WATER = NO, CITY=Amsterdam" -b "WATER, CITY" original.shp'
+        }, {
+            desc: '10. Full example',
+            example: '$ minify-geojson -ktiv -w "property1, property2" -c 5 original.geojson'
+        }]
+    }
     ];
 }
 
 const options = commandLineArgs(CommandLineInterface.optionDefinitions);
+
+if (!options.src) {
+    console.error('No source specified.\n');
+    const getUsage = require('command-line-usage');
+    const usage = getUsage(CommandLineInterface.sections);
+    console.log(usage);
+    process.exit(1);
+}
+
 const minifyGeoJSON = new MinifyGeoJSON(options);

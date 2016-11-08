@@ -2,77 +2,9 @@ import fs = require('fs');
 import path = require('path');
 import winston = require('winston');
 
-import {ICommandOptions} from './cli';
-import {CommandLineInterface} from './minify-geojson-cli';
-
-export interface ITopologyOptions {
-    /**
-     * Informational messages will be output to stderr
-     * 
-     * @type {boolean}
-     */
-    verbose?: boolean,
-    /**
-     * Either "cartesian", "spherical" or null to infer the coordinate system automatically
-     * 
-     * @type {("cartesian" | "spherical" | "")}
-     */
-    "coordinate-system"?: "cartesian" | "spherical" | "",
-    /**
-     * If truthy and using spherical coordinates, polar antimeridian cuts will be stitched 
-     * 
-     * @type {boolean}
-     */
-    "stitch-poles"?: boolean,
-    /**
-     * Quantization precision; the maximum number of differentiable points per dimension. 
-     * 
-     * @type {number}
-     */
-    quantization?: number,
-    /**
-     * A function for computing the id of each input feature. 
-     * 
-     * @type {Function}
-     */
-    id?: Function,
-    /**
-     * A function for remapping properties.
-     * 
-     * @type {Function}
-     */
-    "property-transform"?: Function
-}
-
-export interface ITopology {
-}
-
-export interface ITopoJSON {
-    /**
-     * Convert to TopoJSON 
-     * 
-     * @param {{ collection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject> }} collection
-     */
-    topology(collection: { collection: GeoJSON.FeatureCollection<GeoJSON.GeometryObject> }, options?: ITopologyOptions): ITopology;
-    /**
-     * Simplifies the topology.
-     * 
-     * @param {ITopology} topo
-     * @param {{ verbose: boolean }} [options]
-     * @returns {ITopology}
-     */
-    simplify(topo: ITopology, options?: { verbose?: boolean, "coordinate-system": string }): ITopology;
-    /**
-     * Removes any unused arcs from the specified topology.
-     * 
-     * @param {ITopology} topo
-     * @param {{ verbose: boolean }} [options]
-     * @returns {ITopology}
-     */
-    prune(topo: ITopology, options?: { verbose: boolean }): ITopology;
-    filter(topo: ITopology, options?: { verbose: boolean }): ITopology;
-    clockwise(topo: ITopology, options?: { verbose: boolean }): ITopology;
-}
+import { ITopoJSON, ITopology } from './topology';
+import { ICommandOptions } from './cli';
+import { CommandLineInterface } from './minify-geojson-cli';
 
 export class MinifyGeoJSON {
     private logger: winston.LoggerInstance;
@@ -82,13 +14,6 @@ export class MinifyGeoJSON {
     private lastKey = 1;
 
     constructor(private options: ICommandOptions) {
-        if (!options.src) {
-            const getUsage = require('command-line-usage');
-            const usage = getUsage(CommandLineInterface.sections);
-            console.log(usage);
-            return;
-        }
-
         this.logger = new (winston.Logger)({
             transports: [
                 new (winston.transports.Console)({ level: options.verbose ? 'info' : 'warning' })
@@ -96,7 +21,7 @@ export class MinifyGeoJSON {
         });
 
         options.src.forEach(s => {
-            let file = path.isAbsolute(s) ? s : path.join(process.cwd(), s);
+            let file = path.resolve(s);
             if (fs.existsSync(file)) {
                 this.loadFile(file, options, (geojson) => {
                     if (!geojson) throw new Error('Could not read input file!');
@@ -138,7 +63,7 @@ export class MinifyGeoJSON {
                 case '>=': return props[prop] >= val;
                 default: throw new Error(`Operator ${op} is not supported!`);
             }
-        }; 
+        };
 
         let queries = filterQuery.split(',').map(q => q.trim());
         let filters = [];
@@ -151,7 +76,7 @@ export class MinifyGeoJSON {
         });
 
         filteredFeatures = geojson.features.filter(feature => {
-            let pass = true; 
+            let pass = true;
             filters.some(f => {
                 if (f(feature.properties)) return false;
                 pass = false;
@@ -175,8 +100,9 @@ export class MinifyGeoJSON {
         if (!(options.keys || options.coordinates || options.whitelist || options.blacklist)) return cb();
 
         let geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
+        let ext = path.extname(inputFile);
 
-        if (inputFile.match(/json$/i)) {
+        if (ext.match(/json$/i)) {
             fs.readFile(inputFile, 'utf8', (err, data) => {
                 if (err) throw err;
 
@@ -184,7 +110,7 @@ export class MinifyGeoJSON {
                 geojson.type = "FeatureCollection"; // this is sometimes missing
                 cb(geojson);
             });
-        } else if (inputFile.match(/shp$/i)) {
+        } else if (ext.match(/shp$/i)) {
             let shapefile = require('shapefile');
             shapefile.read(inputFile, (err, geojson) => {
                 if (err) throw err;

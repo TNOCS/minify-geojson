@@ -61,5 +61,12 @@ var CommandLineInterface = (function () {
 }());
 exports.CommandLineInterface = CommandLineInterface;
 var options = commandLineArgs(CommandLineInterface.optionDefinitions);
+if (!options.src) {
+    console.error('No source specified.\n');
+    var getUsage = require('command-line-usage');
+    var usage = getUsage(CommandLineInterface.sections);
+    console.log(usage);
+    process.exit(1);
+}
 var minifyGeoJSON = new minify_geojson_1.MinifyGeoJSON(options);
 //# sourceMappingURL=minify-geojson-cli.js.map

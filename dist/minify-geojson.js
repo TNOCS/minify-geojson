@@ -2,7 +2,6 @@
 var fs = require('fs');
 var path = require('path');
 var winston = require('winston');
-var minify_geojson_cli_1 = require('./minify-geojson-cli');
 var MinifyGeoJSON = (function () {
     function MinifyGeoJSON(options) {
         var _this = this;
@@ -10,19 +9,13 @@ var MinifyGeoJSON = (function () {
         this.keys = {};
         this.reversedKeys = {};
         this.lastKey = 1;
-        if (!options.src) {
-            var getUsage = require('command-line-usage');
-            var usage = getUsage(minify_geojson_cli_1.CommandLineInterface.sections);
-            console.log(usage);
-            return;
-        }
         this.logger = new (winston.Logger)({
             transports: [
                 new (winston.transports.Console)({ level: options.verbose ? 'info' : 'warning' })
             ]
         });
         options.src.forEach(function (s) {
-            var file = path.isAbsolute(s) ? s : path.join(process.cwd(), s);
+            var file = path.resolve(s);
             if (fs.existsSync(file)) {
                 _this.loadFile(file, options, function (geojson) {
                     if (!geojson)
@@ -90,7 +83,8 @@ var MinifyGeoJSON = (function () {
         if (!(options.keys || options.coordinates || options.whitelist || options.blacklist))
             return cb();
         var geojson;
-        if (inputFile.match(/json$/i)) {
+        var ext = path.extname(inputFile);
+        if (ext.match(/json$/i)) {
             fs.readFile(inputFile, 'utf8', function (err, data) {
                 if (err)
                     throw err;
@@ -99,7 +93,7 @@ var MinifyGeoJSON = (function () {
                 cb(geojson);
             });
         }
-        else if (inputFile.match(/shp$/i)) {
+        else if (ext.match(/shp$/i)) {
             var shapefile = require('shapefile');
             shapefile.read(inputFile, function (err, geojson) {
                 if (err)
