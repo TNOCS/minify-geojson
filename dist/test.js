@@ -4,8 +4,8 @@ var __extends = (this && this.__extends) || function (d, b) {
     function __() { this.constructor = d; }
     d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
 };
-var fs = require('fs');
-var stream = require('stream');
+var fs = require("fs");
+var stream = require("stream");
 var pump = require('pump');
 var OgrJsonStream = require('ogr-json-stream');
 var parser = OgrJsonStream();
@@ -19,8 +19,9 @@ sink.on('end', function () { sink.write(']}'); });
 var PruneEmptyProperties = (function (_super) {
     __extends(PruneEmptyProperties, _super);
     function PruneEmptyProperties() {
-        _super.call(this, { objectMode: true });
-        this.count = 0;
+        var _this = _super.call(this, { objectMode: true }) || this;
+        _this.count = 0;
+        return _this;
     }
     PruneEmptyProperties.prototype._transform = function (geojson, encoding, done) {
         this.count++;
@@ -42,9 +43,10 @@ exports.PruneEmptyProperties = PruneEmptyProperties;
 var TruncatePropertyValues = (function (_super) {
     __extends(TruncatePropertyValues, _super);
     function TruncatePropertyValues(truncValue) {
-        _super.call(this, { objectMode: true });
-        this.truncValue = truncValue;
-        this.isNumber = /[-\d.]+/;
+        var _this = _super.call(this, { objectMode: true }) || this;
+        _this.truncValue = truncValue;
+        _this.isNumber = /[-\d.]+/;
+        return _this;
     }
     TruncatePropertyValues.prototype._transform = function (geojson, encoding, done) {
         for (var key in geojson.properties) {
@@ -62,8 +64,9 @@ exports.TruncatePropertyValues = TruncatePropertyValues;
 var TruncateCoordinates = (function (_super) {
     __extends(TruncateCoordinates, _super);
     function TruncateCoordinates(truncValue) {
-        _super.call(this, { objectMode: true });
-        this.truncValue = truncValue;
+        var _this = _super.call(this, { objectMode: true }) || this;
+        _this.truncValue = truncValue;
+        return _this;
     }
     TruncateCoordinates.prototype._transform = function (geojson, encoding, done) {
         var _this = this;
@@ -89,11 +92,12 @@ exports.TruncateCoordinates = TruncateCoordinates;
 var BlackWhiteListFilter = (function (_super) {
     __extends(BlackWhiteListFilter, _super);
     function BlackWhiteListFilter(whitelist, blacklist) {
-        _super.call(this, { objectMode: true });
+        var _this = _super.call(this, { objectMode: true }) || this;
         if (whitelist)
-            this.whitelist = whitelist.map(function (i) { return i.trim(); });
+            _this.whitelist = whitelist.map(function (i) { return i.trim(); });
         if (blacklist)
-            this.blacklist = blacklist.map(function (i) { return i.trim(); });
+            _this.blacklist = blacklist.map(function (i) { return i.trim(); });
+        return _this;
     }
     BlackWhiteListFilter.prototype._transform = function (geojson, encoding, done) {
         for (var key in geojson.properties) {
@@ -113,10 +117,11 @@ exports.BlackWhiteListFilter = BlackWhiteListFilter;
 var SimplifyKeys = (function (_super) {
     __extends(SimplifyKeys, _super);
     function SimplifyKeys() {
-        _super.call(this, { objectMode: true });
-        this.keys = {};
-        this.reversedKeys = {};
-        this.lastKey = 1;
+        var _this = _super.call(this, { objectMode: true }) || this;
+        _this.keys = {};
+        _this.reversedKeys = {};
+        _this.lastKey = 1;
+        return _this;
     }
     SimplifyKeys.prototype._transform = function (geojson, encoding, done) {
         geojson.properties = this.minifyPropertyKeys(geojson.properties);
@@ -174,7 +179,7 @@ exports.SimplifyKeys = SimplifyKeys;
 var Stringifier = (function (_super) {
     __extends(Stringifier, _super);
     function Stringifier() {
-        _super.call(this, { objectMode: true });
+        return _super.call(this, { objectMode: true }) || this;
     }
     Stringifier.prototype._transform = function (geojson, encoding, done) {
         this.push(JSON.stringify(geojson));
