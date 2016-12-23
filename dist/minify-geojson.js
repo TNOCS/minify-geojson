@@ -1,7 +1,7 @@
 "use strict";
-var fs = require('fs');
-var path = require('path');
-var winston = require('winston');
+var fs = require("fs");
+var path = require("path");
+var winston = require("winston");
 var MinifyGeoJSON = (function () {
     function MinifyGeoJSON(options) {
         var _this = this;
@@ -19,7 +19,7 @@ var MinifyGeoJSON = (function () {
             if (fs.existsSync(file)) {
                 _this.loadFile(file, options, function (geojson) {
                     if (!geojson)
-                        throw new Error('Could not read input file!');
+                        throw new Error('Please check the options!');
                     var ext = options.topo ? ".min.topojson" : ".min.geojson";
                     var outputFile = file.replace(/\.[^/.]+$/, ext);
                     if (options.filter)

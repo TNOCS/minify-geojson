@@ -24,7 +24,7 @@ export class MinifyGeoJSON {
             let file = path.resolve(s);
             if (fs.existsSync(file)) {
                 this.loadFile(file, options, (geojson) => {
-                    if (!geojson) throw new Error('Could not read input file!');
+                    if (!geojson) throw new Error('Please check the options!');
                     let ext = options.topo ? ".min.topojson" : ".min.geojson";
                     let outputFile = file.replace(/\.[^/.]+$/, ext);
 
@@ -91,7 +91,7 @@ export class MinifyGeoJSON {
 
     /**
      * Minify the input (shape or GeoJSON) file.
-     * 
+     *
      * @param {string} inputFile
      * @param {ICommandOptions} options
      * @param {Function} callback(GeoJSON?)
@@ -121,7 +121,7 @@ export class MinifyGeoJSON {
 
     /**
      * Minify the GeoJSON file.
-     * 
+     *
      * @param {GeoJSON.FeatureCollection<GeoJSON.GeometryObject>} geojson
      * @param {string} inputFile
      * @param {string} outputFile
@@ -194,10 +194,10 @@ export class MinifyGeoJSON {
 
     /**
      * Retrieve the CRS (Coordinate Reference System) online.
-     * 
+     *
      * @param {string} crsName
      * @param {Function} cb Callback function
-     * 
+     *
      */
     private getCoordinateReferenceSystem(crsName: string, cb: (crss: Object) => void) {
         let http = require('http');
@@ -229,8 +229,8 @@ export class MinifyGeoJSON {
     }
 
     /**
-     * Minifies the property keys. 
-     * 
+     * Minifies the property keys.
+     *
      * @param {{ [key: string]: any }} props
      * @returns
      */
@@ -256,8 +256,8 @@ export class MinifyGeoJSON {
     }
 
     /**
-     * Try to find an intelligent match, i.e. id remains, otherwise, try to use the first letter of the word. 
-     * 
+     * Try to find an intelligent match, i.e. id remains, otherwise, try to use the first letter of the word.
+     *
      * @param {string} key
      * @returns
      */
@@ -274,8 +274,8 @@ export class MinifyGeoJSON {
     }
 
     /**
-     * Remove all properties that are on the blacklist and not on the whitelist. 
-     * 
+     * Remove all properties that are on the blacklist and not on the whitelist.
+     *
      * @param {{ [key: string]: any }} props
      */
     private prune(props: { [key: string]: any }, blacklist: string[], whitelist: string[]) {
