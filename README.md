@@ -1,4 +1,7 @@
 # minify-geojson
+
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/786f95aba4434d0bb464d820f096d63d)](https://www.codacy.com/app/erikvullings/minify-geojson?utm_source=github.com&utm_medium=referral&utm_content=TNOCS/minify-geojson&utm_campaign=badger)
+
 A small tool to minify (compress) a GeoJSON file by:
 - Removing non-significant whitespace
 - Reducing the number of decimals used for coordinates: option `-c 5` to keep 5 decimals
