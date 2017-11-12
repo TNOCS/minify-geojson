@@ -25,7 +25,7 @@ export class MinifyGeoJSON {
         return;
       }
       this.loadFile(file, options, (geojson) => {
-        if (!geojson) throw new Error('Could not read input file!');
+        if (!geojson) throw new Error('Could not read input file! Please see the options.');
         const ext = options.topo ? '.min.topojson' : '.min.geojson';
         const outputFile = file.replace(/\.[^/.]+$/, ext);
 
