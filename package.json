@@ -19,6 +19,7 @@
   "scripts": {
     "watch": "tsc -w",
     "patch-release": "npm version patch && npm publish && git push --follow-tags",
+    "minor-release": "npm version minor && npm publish && git push --follow-tags",
     "test": "tape 'test/**/*-test.js'"
   },
   "author": {
