@@ -22,7 +22,7 @@ var MinifyGeoJSON = (function () {
             }
             _this.loadFile(file, options, function (geojson) {
                 if (!geojson)
-                    throw new Error('Could not read input file!');
+                    throw new Error('Could not read input file! Please see the options.');
                 var ext = options.topo ? '.min.topojson' : '.min.geojson';
                 var outputFile = file.replace(/\.[^/.]+$/, ext);
                 if (options.filter) {
