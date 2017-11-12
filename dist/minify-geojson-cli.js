@@ -1,6 +1,8 @@
 "use strict";
-var minify_geojson_1 = require('./minify-geojson');
-var commandLineArgs = require('command-line-args');
+Object.defineProperty(exports, "__esModule", { value: true });
+var minify_geojson_streaming_1 = require("./streaming/minify-geojson-streaming");
+var minify_geojson_1 = require("./minify-geojson");
+var commandLineArgs = require("command-line-args");
 var CommandLineInterface = (function () {
     function CommandLineInterface() {
     }
@@ -8,17 +10,18 @@ var CommandLineInterface = (function () {
         { name: 'keys', alias: 'k', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Minify property keys, e.g. id remains id, telephone becomes t, address a etc.' },
         { name: 'includeKeyMap', alias: 'i', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Add the key map to the GeoJSON file. Requires the -k flag too.' },
         { name: 'topo', alias: 't', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Output format is TopoJSON instead of GeoJSON.' },
-        { name: 'reproject', alias: 'r', type: String, typeLabel: '[underline]{String}', description: 'Reproject to WGS84 by supplying the input EPSG coordinate system, e.g. -r EPSG:28992' },
-        { name: 'filter', alias: 'f', type: String, typeLabel: '[underline]{String}', description: 'Comma separted list of property filters, e.g. "WATER = YES, LAND = NO"' },
+        { name: 'reproject', alias: 'r', type: String, typeLabel: '[underline]{String}', description: 'Reproject to WGS84 by supplying the input EPSG coordinate system, e.g. -r EPSG:28992.' },
+        { name: 'filter', alias: 'f', type: String, typeLabel: '[underline]{String}', description: 'Comma separted list of property filters, which will KEEP those features when the property filter returns true, e.g. filter "WATER = NO" will filter out feature\'s where { "WATER": "NO" }.' },
         { name: 'blacklist', alias: 'b', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be removed (others will be kept). Note that keys will not be minified unless the -k flag is used too.' },
         { name: 'whitelist', alias: 'w', type: String, typeLabel: '[underline]{String}', description: 'Comma separated list of properties that should be kept (others will be removed). Note that keys will not be minified unless the -k flag is used too.' },
-        { name: 'coordinates', alias: 'c', type: Number, defaultOption: false, typeLabel: '[underline]{Positive number}', description: 'Only keep the first [italic]{n} digits of each coordinate.' },
+        { name: 'coordinates', alias: 'c', type: Number, typeLabel: '[underline]{Positive number}', description: 'Only keep the first [italic]{n} digits of each coordinate.' },
+        { name: 'decimals', alias: 'd', type: Number, typeLabel: '[underline]{Positive number}', description: 'Only keep the first [italic]{n} digits of each decimal property.' },
         { name: 'src', alias: 's', type: String, multiple: true, defaultOption: true, typeLabel: '[underline]{File names}', description: 'Source files to process: you do not need to supply the -s flag.' },
         { name: 'verbose', alias: 'v', type: Boolean, typeLabel: '[underline]{Boolean}', description: 'Output is verbose.' }
     ];
     CommandLineInterface.sections = [{
             header: 'Minify GeoJSON',
-            content: 'Minify (compress) each input GeoJSON or ESRI shape file by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, whitelist and blacklist or filter certain properties. Output can be GeoJSON or TopoJSON. If you wish to reproject to WGS84, you can supply the EPSG code (which will be retreived via http://www.spatialreference.org/ref/epsg/YOURCODE/proj4/).'
+            content: 'Minify (compress) each input GeoJSON or ESRI shapefile by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates and properties, whitelist and blacklist or filter certain properties. Output can be GeoJSON or TopoJSON. If you wish to reproject to WGS84, you can supply the EPSG code (which will be resolved via http://www.spatialreference.org/ref/epsg/YOURCODE/proj4/).'
         }, {
             header: 'Options',
             optionList: CommandLineInterface.optionDefinitions
@@ -62,11 +65,15 @@ var CommandLineInterface = (function () {
 exports.CommandLineInterface = CommandLineInterface;
 var options = commandLineArgs(CommandLineInterface.optionDefinitions);
 if (!options.src) {
-    console.error('No source specified.\n');
+    console.error('Supplied options: ');
+    console.error(options);
+    console.error('\nNo source specified.\n');
     var getUsage = require('command-line-usage');
     var usage = getUsage(CommandLineInterface.sections);
     console.log(usage);
     process.exit(1);
 }
-var minifyGeoJSON = new minify_geojson_1.MinifyGeoJSON(options);
+var minifyGeoJSON = options.topo || options.reproject
+    ? new minify_geojson_1.MinifyGeoJSON(options)
+    : new minify_geojson_streaming_1.MinifyGeoJSONStreaming(options);
 //# sourceMappingURL=minify-geojson-cli.js.map

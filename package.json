@@ -1,8 +1,9 @@
 {
   "name": "minify-geojson",
-  "version": "1.0.8",
+  "version": "1.1.0",
   "description": "Minify (compress) a GeoJSON by replacing the attribute keys with a shorter representation (typically, its first letter). You can also reduce the number of decimals for coordinates, and whitelist and blacklist certain properties.",
-  "main": "./src/minify-geojson.js",
+  "main": "./src/minify-geojson-cli.ts",
+  "types": "./dist/minify-geojson-cli.d.ts",
   "repository": {
     "type": "git",
     "url": "https://github.com/TNOCS/minify-geojson.git"
@@ -16,7 +17,7 @@
     "minify-geojson": "./bin/run.js"
   },
   "scripts": {
-    "watch": "typings install && tsc -w",
+    "watch": "tsc -w",
     "patch-release": "npm version patch && npm publish && git push --follow-tags",
     "test": "tape 'test/**/*-test.js'"
   },
@@ -34,10 +35,10 @@
     "command-line-usage": "^4.0.1",
     "ogr-json-stream": "^0.3.0",
     "proj4": "^2.4.4",
+    "pump": "^1.0.2",
     "reproject": "^1.1.1",
     "shapefile": "^0.6.6",
-    "topojson": "^3.0.2",
-    "winston": "^2.4.0"
+    "topojson": "^3.0.2"
   },
   "devDependencies": {
     "@types/command-line-args": "^4.0.1",
@@ -47,7 +48,6 @@
     "@types/pump": "^1.0.1",
     "@types/shapefile": "^0.5.2",
     "@types/topojson": "^3.0.2",
-    "@types/winston": "^2.3.7",
     "typescript": "^2.6.1"
   }
 }

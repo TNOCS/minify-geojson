@@ -5,7 +5,9 @@ A small tool to minify (compress) a GeoJSON file by:
 - Minify the length of the keys by mapping each key name to a single of double letter combination: option `-k` converts long property keys such as `my_long_property_name` to `a` or `ab`. **Warning:** If you already have property keys like `a` or `b`, it may map them to the wrong name.
 - Blacklist keys, i.e. remove these keys from the output
 - Whitelist keys, i.e. only keep these keys in the output
-- Filter features, i.e. only keep those features whose properties satisfy certain conditions. 
+- Filter features, i.e. only keep those features whose properties satisfy certain conditions.
+
+The tool works in two modes: for files that require reprojection or topojson output, it will read in all data at once. In case your GeoJSON file is too large for node.js to handle, this may fail. That's why it normally uses a streaming mode, so also large files can be processed easily (after which you can try reprojecting it again).
 
 # Installation
 
