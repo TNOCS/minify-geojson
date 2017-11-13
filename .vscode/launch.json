@@ -4,15 +4,15 @@
         "name": "Launch",
         "type": "node",
         "request": "launch",
-        "program": "${workspaceRoot}/src/test.ts",
+        "program": "${workspaceRoot}/src/minify-geojson-cli.ts",
         "stopOnEntry": false,
         "args": [
-            "-ki", 
-            "-b", 
-            "top10_id",
-            "-c", 
-            "7", 
-            "c:\\Users\\erikv\\Downloads\\3D-GebouwhoogteNL_2015\\3D-GebouwhoogteNL_Data\\3dGebouwhoogteNL.geojson"
+            "-v",
+            "-b",
+            "subCode",
+            "-c",
+            "6",
+            "C:\\Users\\erikv\\Documents\\Projects\\WorldExplorerVMG\\data_files\\vogd_01_vector_other_p_wgs84.geojson"
         ],
         "cwd": "${workspaceRoot}",
         "preLaunchTask": null,
