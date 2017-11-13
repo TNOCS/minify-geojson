@@ -32,7 +32,7 @@ var SimplifyKeys = (function (_super) {
     SimplifyKeys.prototype._flush = function (done) {
         console.log('Key map:');
         console.log(JSON.stringify(this.reversedKeys, null, 2));
-        done(null, {});
+        done(null, null);
     };
     SimplifyKeys.prototype.minifyPropertyKeys = function (props) {
         var newProps = {};

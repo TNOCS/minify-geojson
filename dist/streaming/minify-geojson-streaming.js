@@ -33,12 +33,8 @@ var MinifyGeoJSONStreaming = (function () {
             }
             var outputFile = inputFile.replace(/\.[^/.]+$/, '.min.geojson');
             var source = fs.createReadStream(inputFile, { encoding: 'utf8' });
-            var sink = fs.createWriteStream(outputFile, { encoding: 'utf8' });
-            sink.on('open', function () { return sink.write('{type: "FeatureCollection",features:['); });
-            sink.on('end', function () {
-                var keymap = options.keys && options.includeKeyMap ? JSON.stringify(simplifier.keyMap) : '';
-                sink.write(keymap + "]}");
-            });
+            var sink = fs.createWriteStream(outputFile, { encoding: 'utf8', autoClose: true });
+            sink.on('open', function () { return sink.write('{"type":"FeatureCollection","features":['); });
             var filters = [
                 source,
                 parser,
@@ -59,7 +55,7 @@ var MinifyGeoJSONStreaming = (function () {
             if (options.keys) {
                 filters.push(simplifier);
             }
-            filters.push(new stringifier_1.Stringifier());
+            filters.push(new stringifier_1.Stringifier(options.includeKeyMap ? simplifier : undefined));
             filters.push(sink);
             pump(filters, function (err) {
                 if (err) {

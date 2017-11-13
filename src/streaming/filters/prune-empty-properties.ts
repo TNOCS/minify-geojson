@@ -1,9 +1,9 @@
-import * as stream from 'stream';
+import { Transform } from 'stream';
 
 /**
  * Remove empty properties from GeoJSON feature.
  */
-export class PruneEmptyProperties extends stream.Transform {
+export class PruneEmptyProperties extends Transform {
   public count = 0;
 
   constructor() {
@@ -15,7 +15,7 @@ export class PruneEmptyProperties extends stream.Transform {
 
     for (const key in geojson.properties) {
       if (!geojson.properties.hasOwnProperty(key)) continue;
-      if (geojson.properties[key] === null) delete geojson.properties[key];
+      if (!geojson.properties[key]) delete geojson.properties[key];
     }
 
     done(null, geojson);

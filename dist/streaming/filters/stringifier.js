@@ -10,17 +10,35 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var stream = require("stream");
+var stream_1 = require("stream");
 var Stringifier = (function (_super) {
     __extends(Stringifier, _super);
-    function Stringifier() {
-        return _super.call(this, { objectMode: true }) || this;
+    function Stringifier(simplifier) {
+        var _this = _super.call(this, {
+            objectMode: true,
+            final: function (done) {
+                _this.push(']');
+                if (simplifier && simplifier.keyMap && Object.keys(simplifier.keyMap.map).length > 0) {
+                    _this.push(',"map":' + JSON.stringify(simplifier.keyMap.map));
+                }
+                _this.push('}');
+                done(null);
+            },
+        }) || this;
+        _this.firstTime = true;
+        return _this;
     }
     Stringifier.prototype._transform = function (geojson, encoding, done) {
-        this.push(JSON.stringify(geojson));
+        if (this.firstTime) {
+            this.firstTime = false;
+            this.push(JSON.stringify(geojson));
+        }
+        else {
+            this.push(',' + JSON.stringify(geojson));
+        }
         done();
     };
     return Stringifier;
-}(stream.Transform));
+}(stream_1.Transform));
 exports.Stringifier = Stringifier;
 //# sourceMappingURL=stringifier.js.map

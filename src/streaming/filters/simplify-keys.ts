@@ -22,7 +22,7 @@ export class SimplifyKeys extends stream.Transform {
   public _flush(done: (err, data) => void) {
     console.log('Key map:');
     console.log(JSON.stringify(this.reversedKeys, null, 2));
-    done(null, {});
+    done(null, null);
   }
 
   /**

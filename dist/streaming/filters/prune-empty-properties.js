@@ -10,7 +10,7 @@ var __extends = (this && this.__extends) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-var stream = require("stream");
+var stream_1 = require("stream");
 var PruneEmptyProperties = (function (_super) {
     __extends(PruneEmptyProperties, _super);
     function PruneEmptyProperties() {
@@ -23,12 +23,12 @@ var PruneEmptyProperties = (function (_super) {
         for (var key in geojson.properties) {
             if (!geojson.properties.hasOwnProperty(key))
                 continue;
-            if (geojson.properties[key] === null)
+            if (!geojson.properties[key])
                 delete geojson.properties[key];
         }
         done(null, geojson);
     };
     return PruneEmptyProperties;
-}(stream.Transform));
+}(stream_1.Transform));
 exports.PruneEmptyProperties = PruneEmptyProperties;
 //# sourceMappingURL=prune-empty-properties.js.map

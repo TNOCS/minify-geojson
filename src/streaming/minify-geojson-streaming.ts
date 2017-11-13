@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import * as stream from 'stream';
 import * as pump from 'pump';
+import { Transform } from 'stream';
 import { MinifyGeoJSON } from './../minify-geojson';
 import { BlackWhiteListFilter } from './filters/black-white-list-filter';
 import { TruncatePropertyValues } from './filters/truncate-property-values';
@@ -31,14 +31,10 @@ export class MinifyGeoJSONStreaming {
       if (path.extname(inputFile).match(/shp$/i)) { return new MinifyGeoJSON(options); }
       const outputFile = inputFile.replace(/\.[^/.]+$/, '.min.geojson');
       const source = fs.createReadStream(inputFile, { encoding: 'utf8' });
-      const sink = fs.createWriteStream(outputFile, { encoding: 'utf8' });
-      sink.on('open', () => sink.write('{type: "FeatureCollection",features:['));
-      sink.on('end', () => {
-        const keymap = options.keys && options.includeKeyMap ? JSON.stringify(simplifier.keyMap) : '';
-        sink.write(`${keymap}]}`);
-      });
+      const sink = fs.createWriteStream(outputFile, { encoding: 'utf8', autoClose: true });
+      sink.on('open', () => sink.write('{"type":"FeatureCollection","features":['));
 
-      const filters: stream.Transform[] = [
+      const filters: Transform[] = [
         source,
         parser,
         pruneEmptyProps
@@ -58,7 +54,7 @@ export class MinifyGeoJSONStreaming {
       if (options.keys) {
         filters.push(simplifier);
       }
-      filters.push(new Stringifier());
+      filters.push(new Stringifier(options.includeKeyMap ? simplifier : undefined));
       filters.push(sink as any);
 
       pump(filters, (err: NodeJS.ErrnoException) => {
