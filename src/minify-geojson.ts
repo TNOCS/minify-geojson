@@ -82,10 +82,7 @@ export class MinifyGeoJSON {
         cb(geojson);
       });
     } else if (ext.match(/shp$/i)) {
-      shapefile.read(inputFile, (err, geojson) => {
-        if (err) throw err;
-        cb(geojson);
-      });
+      shapefile.read(inputFile).then(readGeoJSON => cb(readGeoJSON)).catch(err => console.error(err));
     }
   }
 

@@ -7,7 +7,6 @@ import { BlackWhiteListFilter } from './filters/black-white-list-filter';
 import { TruncatePropertyValues } from './filters/truncate-property-values';
 import { TruncateCoordinates } from './filters/truncate-coordinates';
 import { PruneEmptyProperties } from './filters/prune-empty-properties';
-import { Feature, GeometryObject, DirectGeometryObject } from 'geojson';
 import { ICommandOptions } from '../cli';
 import { SimplifyKeys } from './filters/simplify-keys';
 import { Stringifier } from './filters/stringifier';

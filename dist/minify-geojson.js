@@ -72,11 +72,7 @@ var MinifyGeoJSON = (function () {
             });
         }
         else if (ext.match(/shp$/i)) {
-            shapefile.read(inputFile, function (err, geojson) {
-                if (err)
-                    throw err;
-                cb(geojson);
-            });
+            shapefile.read(inputFile).then(function (readGeoJSON) { return cb(readGeoJSON); }).catch(function (err) { return console.error(err); });
         }
     };
     MinifyGeoJSON.prototype.processGeoJSON = function (geojson, inputFile, outputFile, options, done) {
@@ -103,10 +99,10 @@ var MinifyGeoJSON = (function () {
         var json = geojson;
         if (options.topo) {
             this.logger('CONVERTING to TopoJSON');
-            var topojson = require('topojson');
-            var topology = topojson.topology({ collection: geojson }, { verbose: options.verbose, 'property-transform': function (feature) { return feature.properties; } });
-            topology = topojson.prune(topology, { verbose: options.verbose });
-            topology = topojson.simplify(topology, { verbose: options.verbose, 'coordinate-system': 'spherical' });
+            var topojson_1 = require('topojson');
+            var topology = topojson_1.topology({ collection: geojson }, { verbose: options.verbose, 'property-transform': function (feature) { return feature.properties; } });
+            topology = topojson_1.prune(topology, { verbose: options.verbose });
+            topology = topojson_1.simplify(topology, { verbose: options.verbose, 'coordinate-system': 'spherical' });
             json = topology;
         }
         var minified;

@@ -7,7 +7,9 @@ export declare class MinifyGeoJSON {
     private reversedKeys;
     private lastKey;
     constructor(options: ICommandOptions);
-    filter(geojson: FeatureCollection<GeometryObject>, filterQuery: string): FeatureCollection<GeometryObject, any>;
+    filter(geojson: FeatureCollection<GeometryObject>, filterQuery: string): FeatureCollection<import("geojson").Geometry, {
+        [name: string]: any;
+    }>;
     private loadFile;
     private processGeoJSON;
     private getCoordinateReferenceSystem;

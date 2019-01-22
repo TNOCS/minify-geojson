@@ -1,5 +1,5 @@
 import * as stream from 'stream';
-import { Feature, DirectGeometryObject } from 'geojson';
+import { Feature, Polygon } from 'geojson';
 
 /**
  * Truncate the geometry coordinates
@@ -9,7 +9,7 @@ export class TruncateCoordinates extends stream.Transform {
     super({ objectMode: true });
   }
 
-  public _transform(geojson: Feature<DirectGeometryObject>, encoding: string, done: (err, data) => void) {
+  public _transform(geojson: Feature<Polygon>, encoding: string, done: (err, data) => void) {
     if (!geojson || !geojson.geometry) { return done(null, geojson ); }
     geojson.geometry.coordinates = JSON.parse(JSON.stringify(geojson.geometry.coordinates, (key, val) => {
       if (isNaN(+key)) return val;
