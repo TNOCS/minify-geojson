@@ -10,9 +10,9 @@ export declare class SimplifyKeys extends stream.Transform {
             [key: string]: string;
         };
     };
-    _transform(geojson: GeoJSON.Feature<GeoJSON.GeometryObject>, encoding: string, done: (err?, data?) => void): void;
-    _flush(done: (err, data) => void): void;
-    private minifyPropertyKeys(props);
-    private smartKey(key);
-    private convertToNumberingScheme(counter);
+    _transform(geojson: GeoJSON.Feature<GeoJSON.GeometryObject>, encoding: string, done: (err?: any, data?: any) => void): void;
+    _flush(done: (err: any, data: any) => void): void;
+    private minifyPropertyKeys;
+    private smartKey;
+    private convertToNumberingScheme;
 }

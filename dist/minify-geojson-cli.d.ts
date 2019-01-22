@@ -1,4 +1,3 @@
-/// <reference types="command-line-args" />
 import { OptionDefinition } from 'command-line-args';
 export interface FixedOptionDefinition extends OptionDefinition {
     description: string;
@@ -9,14 +8,17 @@ export declare class CommandLineInterface {
     static sections: ({
         header: string;
         content: string;
+        optionList?: undefined;
     } | {
         header: string;
         optionList: FixedOptionDefinition[];
+        content?: undefined;
     } | {
         header: string;
         content: {
             desc: string;
             example: string;
         }[];
+        optionList?: undefined;
     })[];
 }

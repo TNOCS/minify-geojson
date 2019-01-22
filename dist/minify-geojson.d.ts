@@ -8,11 +8,11 @@ export declare class MinifyGeoJSON {
     private lastKey;
     constructor(options: ICommandOptions);
     filter(geojson: FeatureCollection<GeometryObject>, filterQuery: string): FeatureCollection<GeometryObject, any>;
-    private loadFile(inputFile, options, cb);
-    private processGeoJSON(geojson, inputFile, outputFile, options, done);
-    private getCoordinateReferenceSystem(crsName, cb);
-    private minifyPropertyKeys(props);
-    private smartKey(key);
-    private prune(props, blacklist, whitelist);
-    private convertToNumberingScheme(counter);
+    private loadFile;
+    private processGeoJSON;
+    private getCoordinateReferenceSystem;
+    private minifyPropertyKeys;
+    private smartKey;
+    private prune;
+    private convertToNumberingScheme;
 }
