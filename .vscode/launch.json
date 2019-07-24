@@ -1,48 +1,28 @@
 {
-    "version": "0.2.0",
-    "configurations": [{
-        "name": "Launch",
-        "type": "node",
-        "request": "launch",
-        "program": "${workspaceRoot}/src/minify-geojson-cli.ts",
-        "stopOnEntry": false,
-        "args": [
-            "-v",
-            "-b",
-            "subCode",
-            "-c",
-            "6",
-            "C:\\Users\\erikv\\Documents\\Projects\\WorldExplorerVMG\\data_files\\vogd_01_vector_other_p_wgs84.geojson"
-        ],
-        "cwd": "${workspaceRoot}",
-        "preLaunchTask": null,
-        "runtimeExecutable": null,
-        "runtimeArgs": [
-            "--nolazy"
-        ],
-        "env": {
-            "NODE_ENV": "development"
-        },
-        "sourceMaps": true,
-        "outDir": "${workspaceRoot}/dist"
-    }, {
-        "name": "Attach",
-        "type": "node",
-        "request": "attach",
-        "port": 5858,
-        "address": "localhost",
-        "restart": false,
-        "sourceMaps": false,
-        "outDir": null,
-        "localRoot": "${workspaceRoot}",
-        "remoteRoot": null
-    }, {
-        "name": "Attach to Process",
-        "type": "node",
-        "request": "attach",
-        "processId": "${command.PickProcess}",
-        "port": 5858,
-        "sourceMaps": false,
-        "outDir": null
-    }]
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch",
+      "type": "node",
+      "request": "launch",
+      "program": "${workspaceRoot}/dist/minify-geojson-cli.js",
+      "stopOnEntry": false,
+      "args": [
+        "-v",
+        "-c",
+        "5",
+        "./samples/4_niedrig.json"
+      ],
+      "cwd": "${workspaceRoot}",
+      "preLaunchTask": null,
+      "runtimeExecutable": null,
+      "runtimeArgs": [
+        "--nolazy"
+      ],
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "sourceMaps": true
+    }
+  ]
 }
