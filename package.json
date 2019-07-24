@@ -32,23 +32,23 @@
   },
   "homepage": "https://github.com/TNOCS/minify-geojson#readme",
   "dependencies": {
-    "command-line-args": "^5.0.2",
-    "command-line-usage": "^5.0.5",
+    "command-line-args": "^5.1.1",
+    "command-line-usage": "^6.0.2",
     "ogr-json-stream": "^0.3.0",
     "proj4": "^2.5.0",
     "pump": "^3.0.0",
-    "reproject": "^1.2.3",
+    "reproject": "^1.2.4",
     "shapefile": "^0.6.6",
     "topojson": "^3.0.2"
   },
   "devDependencies": {
     "@types/command-line-args": "^5.0.0",
-    "@types/geojson": "^7946.0.5",
-    "@types/node": "^10.12.18",
+    "@types/geojson": "^7946.0.7",
+    "@types/node": "^12.6.8",
     "@types/proj4": "^2.5.0",
-    "@types/pump": "^1.0.1",
+    "@types/pump": "^1.1.0",
     "@types/shapefile": "^0.6.0",
-    "@types/topojson": "^3.2.1",
-    "typescript": "^3.2.4"
+    "@types/topojson": "^3.2.2",
+    "typescript": "^3.5.3"
   }
 }
