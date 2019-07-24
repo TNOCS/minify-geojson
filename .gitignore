@@ -37,3 +37,5 @@ typings
 test
 *.map
 .vscode
+dist
+samples/*.min.geojson
