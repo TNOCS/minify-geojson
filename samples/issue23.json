@@ -1,0 +1,43 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "id": 0,
+      "properties": {
+        "ID_0": 86,
+        "ISO": "DEU",
+        "NAME_0": "Germany",
+        "ID_1": 1,
+        "NAME_1": "Baden-Württemberg",
+        "NL_NAME_1": null,
+        "VARNAME_1": null,
+        "TYPE_1": "Land",
+        "ENGTYPE_1": "State"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              8.708373069763297,
+              47.715557098388672
+            ],
+            [
+              8.722451210022371,
+              47.696529388427791
+            ],
+            [
+              8.661308288574162,
+              47.695213317871264
+            ],
+            [
+              8.708373069763297,
+              47.715557098388672
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
