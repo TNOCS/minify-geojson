@@ -58,7 +58,8 @@ export class MinifyGeoJSONStreaming {
 
       pump(filters, (err: NodeJS.ErrnoException) => {
         if (err) {
-          console.error(err);
+          // console.error(err);
+          new MinifyGeoJSON(options);
         } else if (options.verbose) {
           reportLog(this.logger, inputFile, outputFile, simplifier ? simplifier.keyMap.map : undefined, pruneEmptyProps.count);
         }
