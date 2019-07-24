@@ -2,6 +2,8 @@ import { MinifyGeoJSONStreaming } from './streaming/minify-geojson-streaming';
 import { ICommandOptions } from './cli';
 import { MinifyGeoJSON } from './minify-geojson';
 import * as commandLineArgs from 'command-line-args';
+import * as path from 'path';
+import * as fs from 'fs';
 import { OptionDefinition } from 'command-line-args';
 
 /**
@@ -165,6 +167,14 @@ if (!options.src) {
   const usage = getUsage(CommandLineInterface.sections);
   console.log(usage);
   process.exit(1);
+} else {
+  options.src.forEach(s => {
+    const src = path.resolve(s);
+    if (!fs.existsSync(src)) {
+      console.error(`Source file ${src} does not exist! Exiting...`);
+      process.exit(1);
+    }
+  });
 }
 
 const minifyGeoJSON =
