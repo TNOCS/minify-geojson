@@ -17,10 +17,10 @@
     "minify-geojson": "./bin/run.js"
   },
   "scripts": {
-    "watch": "tsc -w",
+    "start": "tsc -w",
+    "dry-run": "npm publish --dry-run",
     "patch-release": "npm version patch && npm publish && git push --follow-tags",
-    "minor-release": "npm version minor && npm publish && git push --follow-tags",
-    "test": "tape 'test/**/*-test.js'"
+    "minor-release": "npm version minor && npm publish && git push --follow-tags"
   },
   "author": {
     "name": "Erik Vullings",
