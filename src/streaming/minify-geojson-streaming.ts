@@ -1,7 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as pump from 'pump';
-import { Transform } from 'stream';
 import { MinifyGeoJSON } from './../minify-geojson';
 import { BlackWhiteListFilter } from './filters/black-white-list-filter';
 import { TruncatePropertyValues } from './filters/truncate-property-values';
@@ -12,13 +11,13 @@ import { SimplifyKeys } from './filters/simplify-keys';
 import { Stringifier } from './filters/stringifier';
 import { reportLog } from './../utils';
 import { PropertyFilter } from './filters/property-filter';
+import { parse } from 'JSONStream';
 
 export class MinifyGeoJSONStreaming {
   private logger = console.log;
 
-  constructor(private options: ICommandOptions) {
-    const OgrJsonStream = require('ogr-json-stream');
-    const parser = OgrJsonStream();
+  constructor(options: ICommandOptions) {
+    const parser = parse('features.*');
     const whitelist = options.whitelist ? options.whitelist.split(',').map(e => e.trim()) : undefined;
     const blacklist = options.blacklist ? options.blacklist.split(',').map(e => e.trim()) : undefined;
 
@@ -33,7 +32,7 @@ export class MinifyGeoJSONStreaming {
       const sink = fs.createWriteStream(outputFile, { encoding: 'utf8', autoClose: true });
       sink.on('open', () => sink.write('{"type":"FeatureCollection","features":['));
 
-      const filters: Transform[] = [
+      const filters = [
         source,
         parser,
         pruneEmptyProps
@@ -58,7 +57,6 @@ export class MinifyGeoJSONStreaming {
 
       pump(filters, (err: NodeJS.ErrnoException) => {
         if (err) {
-          // console.error(err);
           new MinifyGeoJSON(options);
         } else if (options.verbose) {
           reportLog(this.logger, inputFile, outputFile, simplifier ? simplifier.keyMap.map : undefined, pruneEmptyProps.count);
