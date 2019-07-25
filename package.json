@@ -18,6 +18,8 @@
   },
   "scripts": {
     "start": "tsc -w",
+    "clean": "rimraf ./dist",
+    "build": "npm run clean && tsc",
     "dry-run": "npm publish --dry-run",
     "patch-release": "npm version patch && npm publish && git push --follow-tags",
     "minor-release": "npm version minor && npm publish && git push --follow-tags"
@@ -50,6 +52,7 @@
     "@types/shapefile": "^0.6.0",
     "@types/topojson": "^3.2.2",
     "@types/jsonstream": "^0.8.30",
+    "rimraf": "2.6.3",
     "typescript": "^3.5.3"
   }
 }
