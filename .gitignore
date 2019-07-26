@@ -39,3 +39,4 @@ test
 .vscode
 dist
 samples/*.min.geojson
+samples/*.min.topojson
