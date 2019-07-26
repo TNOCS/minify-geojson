@@ -4,10 +4,9 @@ import * as http from 'http';
 import * as proj4 from 'proj4';
 import * as shapefile from 'shapefile';
 import * as reproject from 'reproject';
-import { ITopoJSON, ITopology } from './topology';
-import { ICommandOptions } from './cli';
-import { CommandLineInterface } from './minify-geojson-cli';
-import { FeatureCollection, GeometryObject, Feature } from 'geojson';
+import * as topojson from 'topojson';
+import { ICommandOptions } from './models/command-options';
+import { FeatureCollection, GeometryObject } from 'geojson';
 import { reportLog, convertQueryToPropertyFilters } from './utils';
 
 export class MinifyGeoJSON {
@@ -17,14 +16,14 @@ export class MinifyGeoJSON {
   private reversedKeys: { [key: string]: string } = {}; // new key to original key
   private lastKey = 1;
 
-  constructor(private options: ICommandOptions) {
+  constructor(options: ICommandOptions) {
     options.src.forEach(s => {
       const file = path.resolve(s);
       if (!fs.existsSync(file)) {
         console.error(`${file} does not exist! Are you perhaps missing a "?\n`);
         return;
       }
-      this.loadFile(file, options, (geojson) => {
+      this.loadFile(file, (geojson) => {
         if (!geojson) throw new Error('Could not read input file! Please see the options.');
         const ext = options.topo ? '.min.topojson' : '.min.geojson';
         const outputFile = file.replace(/\.[^/.]+$/, ext);
@@ -69,7 +68,7 @@ export class MinifyGeoJSON {
    * @param {ICommandOptions} options
    * @param {Function} callback(GeoJSON?)
    */
-  private loadFile(inputFile: string, options: ICommandOptions, cb: (geojson?: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>) => void) {
+  private loadFile(inputFile: string, cb: (geojson?: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>) => void) {
     let geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>;
     const ext = path.extname(inputFile);
 
@@ -120,10 +119,12 @@ export class MinifyGeoJSON {
     if (options.topo) {
       // Overwrite the current GeoJSON object with a TopoJSON representation
       this.logger('CONVERTING to TopoJSON');
-      let topojson: ITopoJSON = require('topojson');
-      let topology = topojson.topology({ collection: geojson }, { verbose: options.verbose, 'property-transform': (feature) => { return feature.properties; } });
-      topology = topojson.prune(topology, { verbose: options.verbose });
-      topology = topojson.simplify(topology, { verbose: options.verbose, 'coordinate-system': 'spherical' });
+      // let topojson: ITopoJSON = require('topojson');
+      let topology = topojson.topology({ collection: geojson });
+      // topology = topojson.prune(topology, { verbose: options.verbose });
+      topology = topojson.presimplify(topology);
+      topology = topojson.simplify(topology);
+      topology = topojson.filter(topology, topojson.filterWeight(topology));
       json = topology;
     }
 
