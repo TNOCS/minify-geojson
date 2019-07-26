@@ -6,7 +6,7 @@ import { BlackWhiteListFilter } from './filters/black-white-list-filter';
 import { TruncatePropertyValues } from './filters/truncate-property-values';
 import { TruncateCoordinates } from './filters/truncate-coordinates';
 import { PruneEmptyProperties } from './filters/prune-empty-properties';
-import { ICommandOptions } from '../cli';
+import { ICommandOptions } from '../models/command-options';
 import { SimplifyKeys } from './filters/simplify-keys';
 import { Stringifier } from './filters/stringifier';
 import { reportLog } from './../utils';

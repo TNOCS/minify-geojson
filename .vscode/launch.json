@@ -5,12 +5,13 @@
       "name": "Launch",
       "type": "node",
       "request": "launch",
-      "program": "${workspaceRoot}/dist/minify-geojson-cli.js",
+      "program": "${workspaceRoot}/dist/cli.js",
       "stopOnEntry": false,
       "args": [
         "-v",
-        "-c",
-        "5",
+        // "-c",
+        // "5",
+        "-t",
         "./samples/4_niedrig.json"
       ],
       "cwd": "${workspaceRoot}",
