@@ -1,4 +1,4 @@
 #! /usr/bin/env node
 
-var minifygeojson = require('../dist/minify-geojson-cli');
+var minifygeojson = require('../dist/cli');
 minifygeojson
