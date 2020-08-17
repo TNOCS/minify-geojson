@@ -3,32 +3,37 @@
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/786f95aba4434d0bb464d820f096d63d)](https://www.codacy.com/app/erikvullings/minify-geojson?utm_source=github.com&utm_medium=referral&utm_content=TNOCS/minify-geojson&utm_campaign=badger)
 
 A small tool to minify (compress) a GeoJSON file by:
+
 - Removing non-significant whitespace
 - Reducing the number of decimals used for coordinates: option `-c 5` to keep 5 decimals
-- Minify the length of the keys by mapping each key name to a single of double letter combination: option `-k` converts long property keys such as `my_long_property_name` to `a` or `ab`. **Warning:** If you already have property keys like `a` or `b`, it may map them to the wrong name.
+- Minify the length of the keys by mapping each key name to a single or double letter combination: option `-k` converts long property keys such as `my_long_property_name` to `a` or `ab`. **Warning:** If you already have property keys like `a` or `b`, it may map them to the wrong name.
 - Blacklist keys, i.e. remove these keys from the output
 - Whitelist keys, i.e. only keep these keys in the output
 - Filter features, i.e. only keep those features whose properties satisfy certain conditions.
 
 The tool works in two modes: for files that require reprojection or topojson output, it will read in all data at once. In case your GeoJSON file is too large for node.js to handle, this may fail. That's why it normally uses a streaming mode, so also large files can be processed easily (after which you can try reprojecting it again).
 
-# Installation
+## Installation
 
 To run it standalone:
+
 ```shell
 npm i -g minify-geojson
 ```
+
 After which the `minify-geojson` command should be available.
 
 Alternatively, you can fork/download/clone the repository, and execute:
+
 ```shell
 npm install
 npm link
 npm run watch
 ```
-Any changes in the Typescript code will be compiled, and since you've linked the project, you can use the `minify-geojson` command from the commandline too.
 
-# Manual
+Any changes in the Typescript code will be compiled, and since you've linked the project, you can use the `minify-geojson` command from the command line too.
+
+## Manual
 
 ```shell
 Minify GeoJSON
@@ -53,7 +58,7 @@ Options
   -f, --filter String                 Comma separted list of property filters, which will
                                       KEEP those features when the property filter returns
                                       true, e.g. filter "WATER = NO" will filter out
-                                      feature's where { "WATER": "NO" }.
+                                      feature\'s where { "WATER": "NO" }.
   -b, --blacklist String              Comma separated list of properties that should be
                                       removed (others will be kept). Note that keys will not
                                       be minified unless the -k flag is used too.
@@ -62,8 +67,8 @@ Options
                                       minified unless the -k flag is used too.
   -c, --coordinates Positive number   Only keep the first n digits of each coordinate.
   -d, --decimals Positive number      Only keep the first n digits of each decimal property.
-  -s, --src File names                Source files to process: you do not need to supply the
-                                      -s flag.
+  -s, --src File names                Source files to process: default option, you do not need to
+                                      supply the -s flag.
   -v, --verbose Boolean               Output is verbose.
 
 Examples
