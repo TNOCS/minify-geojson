@@ -4,7 +4,8 @@ import * as http from 'http';
 import * as proj4 from 'proj4';
 import * as shapefile from 'shapefile';
 import * as reproject from 'reproject';
-import * as topojson from 'topojson';
+import { topology } from 'topojson-server';
+import { presimplify, simplify, filter, filterWeight } from 'topojson-simplify';
 import { ICommandOptions } from './models/command-options';
 import { FeatureCollection, GeometryObject } from 'geojson';
 import { reportLog, convertQueryToPropertyFilters } from './utils';
@@ -17,7 +18,7 @@ export class MinifyGeoJSON {
   private lastKey = 1;
 
   constructor(options: ICommandOptions) {
-    options.src.forEach(s => {
+    options.src.forEach((s) => {
       const file = path.resolve(s);
       if (!fs.existsSync(file)) {
         console.error(`${file} does not exist! Are you perhaps missing a "?\n`);
@@ -28,7 +29,9 @@ export class MinifyGeoJSON {
         const ext = options.topo ? '.min.topojson' : '.min.geojson';
         const outputFile = file.replace(/\.[^/.]+$/, ext);
 
-        if (options.filter) { geojson = this.filter(geojson, options.filter); }
+        if (options.filter) {
+          geojson = this.filter(geojson, options.filter);
+        }
 
         if (options.reproject) {
           let crsName = options.reproject.toUpperCase();
@@ -36,10 +39,10 @@ export class MinifyGeoJSON {
           this.logger(`REPROJECTING from ${crsName} to WGS84`);
           this.getCoordinateReferenceSystem(crsName, (crss) => {
             geojson = reproject.toWgs84(geojson, crss, crss);
-            this.processGeoJSON(geojson, file, outputFile, options, () => { });
+            this.processGeoJSON(geojson, file, outputFile, options, () => {});
           });
         } else {
-          this.processGeoJSON(geojson, file, outputFile, options, () => { });
+          this.processGeoJSON(geojson, file, outputFile, options, () => {});
         }
       });
     });
@@ -48,10 +51,12 @@ export class MinifyGeoJSON {
   filter(geojson: FeatureCollection<GeometryObject>, filterQuery: string) {
     const filters = convertQueryToPropertyFilters(filterQuery);
 
-    geojson.features = geojson.features.filter(feature => {
+    geojson.features = geojson.features.filter((feature) => {
       let pass = true;
-      filters.some(f => {
-        if (f(feature.properties)) { return false; }
+      filters.some((f) => {
+        if (f(feature.properties)) {
+          return false;
+        }
         pass = false;
         return true;
       });
@@ -81,7 +86,10 @@ export class MinifyGeoJSON {
         cb(geojson);
       });
     } else if (ext.match(/shp$/i)) {
-      shapefile.read(inputFile).then(readGeoJSON => cb(readGeoJSON)).catch(err => console.error(err));
+      shapefile
+        .read(inputFile)
+        .then((readGeoJSON) => cb(readGeoJSON))
+        .catch((err) => console.error(err));
     }
   }
 
@@ -94,19 +102,27 @@ export class MinifyGeoJSON {
    * @param {ICommandOptions} options
    * @param {Function} done
    */
-  private processGeoJSON(geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>, inputFile: string, outputFile: string, options: ICommandOptions, done: Function) {
+  private processGeoJSON(
+    geojson: GeoJSON.FeatureCollection<GeoJSON.GeometryObject>,
+    inputFile: string,
+    outputFile: string,
+    options: ICommandOptions,
+    done: Function
+  ) {
     const minifyKeys = options.keys;
     const minifyCoordinates = options.coordinates;
-    const whitelist: string[] = options.whitelist ? options.whitelist.split(',').map(e => e.trim()) : undefined;
-    const blacklist: string[] = options.blacklist ? options.blacklist.split(',').map(e => e.trim()) : undefined;
+    const whitelist: string[] = options.whitelist ? options.whitelist.split(',').map((e) => e.trim()) : undefined;
+    const blacklist: string[] = options.blacklist ? options.blacklist.split(',').map((e) => e.trim()) : undefined;
 
     // Process the property keys
     if (minifyKeys || blacklist || whitelist) {
       this.keys = minifyKeys ? {} : undefined;
-      geojson.features.forEach(f => {
+      geojson.features.forEach((f) => {
         if (f.properties) {
           if (blacklist || whitelist) f.properties = this.prune(f.properties, blacklist, whitelist);
-          if (minifyKeys) { f.properties = this.minifyPropertyKeys(f.properties); }
+          if (minifyKeys) {
+            f.properties = this.minifyPropertyKeys(f.properties);
+          }
         }
       });
     }
@@ -120,12 +136,12 @@ export class MinifyGeoJSON {
       // Overwrite the current GeoJSON object with a TopoJSON representation
       this.logger('CONVERTING to TopoJSON');
       // let topojson: ITopoJSON = require('topojson');
-      let topology = topojson.topology({ collection: geojson });
+      let converted = topology({ collection: geojson });
       // topology = topojson.prune(topology, { verbose: options.verbose });
-      topology = topojson.presimplify(topology);
-      topology = topojson.simplify(topology);
-      topology = topojson.filter(topology, topojson.filterWeight(topology));
-      json = topology;
+      converted = presimplify(converted);
+      converted = simplify(converted);
+      converted = filter(converted, filterWeight(converted));
+      json = converted;
     }
 
     let minified: string;
@@ -139,7 +155,9 @@ export class MinifyGeoJSON {
     }
     fs.writeFile(outputFile, minified, (err) => {
       if (err) throw err;
-      if (options.verbose) { reportLog(this.logger, inputFile, outputFile, this.keys); }
+      if (options.verbose) {
+        reportLog(this.logger, inputFile, outputFile, this.keys);
+      }
       done();
     });
   }
@@ -157,22 +175,26 @@ export class MinifyGeoJSON {
       crss[k] = proj4(crss[k]);
     }
 
-    if (crss[crsName]) { return cb(crss[crsName]); }
+    if (crss[crsName]) {
+      return cb(crss[crsName]);
+    }
 
     const crsPath = crsName.toLowerCase().replace(':', '/');
     const url = 'http://www.spatialreference.org/ref/' + crsPath + '/proj4/';
     let crsDef = '';
 
-    http.get(url, res => {
+    http.get(url, (res) => {
       if (res.statusCode !== 200) {
         throw new Error(`Spatialreference.org responded with HTTP ${res.statusCode} while looking up "${crsName}".`);
       }
-      res.on('data', chunk => {
-        crsDef += chunk;
-      }).on('end', () => {
-        crss[crsName] = proj4(crsDef);
-        cb(crss[crsName]);
-      });
+      res
+        .on('data', (chunk) => {
+          crsDef += chunk;
+        })
+        .on('end', () => {
+          crss[crsName] = proj4(crsDef);
+          cb(crss[crsName]);
+        });
     });
   }
 
@@ -238,7 +260,7 @@ export class MinifyGeoJSON {
   }
 
   private convertToNumberingScheme(counter: number) {
-    const baseChar = ('a').charCodeAt(0);
+    const baseChar = 'a'.charCodeAt(0);
     let letters = '';
 
     do {
